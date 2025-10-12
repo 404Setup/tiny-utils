@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 /**
@@ -167,16 +168,31 @@ public class Reflect {
         field.set(targetObject, value);
     }
 
-    /**
-     * Retrieves the value of a static field from the specified class using reflection.
-     *
-     * @param targetClass the class containing the static field. Must not be null.
-     * @param fieldName   the name of the static field to retrieve. Must not be null.
-     * @return the value of the specified static field.
-     * @throws NoSuchFieldException     if the field with the specified name does not exist in the class.
-     * @throws IllegalAccessException   if the field cannot be accessed due to security restrictions.
-     * @throws IllegalArgumentException if the field is not static.
-     */
+    public static void setFinalField(@NotNull Object targetObject, @NotNull String fieldName, @NotNull Object value) throws NoSuchFieldException, IllegalAccessException {
+        var field = targetObject.getClass().getDeclaredField(fieldName);
+        enforceType(field.getType(), value.getClass());
+        setFinal(field);
+        
+        field.setAccessible(true);
+        field.set(targetObject, value);
+    }
+
+    private static void setFinal(@NotNull Field field) throws NoSuchFieldException, IllegalAccessException {
+        Field modifiersField = Field.class.getDeclaredField("modifiers");
+        modifiersField.setAccessible(true);
+        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+    }
+
+        /**
+         * Retrieves the value of a static field from the specified class using reflection.
+         *
+         * @param targetClass the class containing the static field. Must not be null.
+         * @param fieldName   the name of the static field to retrieve. Must not be null.
+         * @return the value of the specified static field.
+         * @throws NoSuchFieldException     if the field with the specified name does not exist in the class.
+         * @throws IllegalAccessException   if the field cannot be accessed due to security restrictions.
+         * @throws IllegalArgumentException if the field is not static.
+         */
     public static Object getStaticField(@NotNull Class<?> targetClass, @NotNull String fieldName) throws IllegalAccessException, NoSuchFieldException {
         var field = targetClass.getDeclaredField(fieldName);
         if (!Modifier.isStatic(field.getModifiers()))
