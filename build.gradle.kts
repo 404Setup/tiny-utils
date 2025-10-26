@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "one.pkg"
-version = "1.6.0"
+version = "1.7.0"
 
 repositories {
     mavenCentral()
@@ -19,6 +19,8 @@ dependencies {
     compileOnly("com.github.luben:zstd-jni:1.5.7-4")
     compileOnly("com.aayushatharva.brotli4j:brotli4j:1.18.0")
     compileOnly("it.unimi.dsi:fastutil:8.5.15")
+    compileOnly("com.google.guava:guava:33.4.0-jre")
+    compileOnly("com.google.code.gson:gson:2.12.1")
 }
 
 val targetJavaVersion = 17
