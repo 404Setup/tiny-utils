@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "one.pkg"
-version = "1.7.0"
+version = "2.0.0"
 
 repositories {
     mavenCentral()
@@ -21,6 +21,7 @@ dependencies {
     compileOnly("it.unimi.dsi:fastutil:8.5.15")
     compileOnly("com.google.guava:guava:33.4.0-jre")
     compileOnly("com.google.code.gson:gson:2.12.1")
+    compileOnly("com.github.oshi:oshi-core:6.9.1")
 }
 
 val targetJavaVersion = 17
@@ -30,6 +31,18 @@ java {
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
     toolchain.languageVersion.set(JavaLanguageVersion.of(targetJavaVersion))
+}
+
+tasks.jar {
+    manifest {
+        val map = mutableMapOf<String, String>()
+        map["Specification-Title"] = "TinyUtils"
+        map["Specification-Vendor"] = "404Setup"
+        map["Specification-Version"] = version as String
+        map["Specification-License"] = "The Apache License, Version 2.0"
+        map["Specification-Src"] = "https://github.com/404Setup/tiny-utils"
+        attributes(map)
+    }
 }
 
 tasks.withType<JavaCompile> {
