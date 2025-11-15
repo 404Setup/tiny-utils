@@ -21,6 +21,26 @@ public class Collections {
     private static final boolean fastutil = Reflect.hasClass("it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap");
 
     /**
+     * Creates a new hash map with Integer keys and values of generic type V.
+     *
+     * @param <V> the type of mapped values
+     * @return a newly created map with Integer keys and values of type V
+     */
+    public static <V> Map<Integer, V> newIntVHashMap() {
+        return fastutil ? new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>() : new HashMap<>();
+    }
+
+    /**
+     * Creates a new map from integers to objects with the specified initial capacity.
+     *
+     * @param initialCapacity the initial capacity of the map. Must be a non-negative integer.
+     * @return a new map where keys are integers and values are of the generic type V.
+     */
+    public static <V> Map<Integer, V> newIntVHashMap(@Range(from = 0, to = Integer.MAX_VALUE) int initialCapacity) {
+        return fastutil ? new it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<>(initialCapacity) : new HashMap<>(initialCapacity);
+    }
+
+    /**
      * Creates a new hash map that maps keys of type {@code K} to integer values.
      *
      * @param <K> the type of keys maintained by this map
@@ -38,6 +58,28 @@ public class Collections {
      */
     public static <K> Map<K, Integer> newIntHashMap(@Range(from = 0, to = Integer.MAX_VALUE) int initialCapacity) {
         return fastutil ? new it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap<>(initialCapacity) : new HashMap<>(initialCapacity);
+    }
+
+
+    /**
+     * Creates and returns a new map with keys of type {@code Long} and values of a generic type {@code V}.\
+     *
+     * @param <V> the type of the values to be stored in the map
+     * @return a new map instance with {@code Long} keys and values of type {@code V}
+     */
+    public static <V> Map<Long, V> newLongVHashMap() {
+        return fastutil ? new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>() : new HashMap<>();
+    }
+
+    /**
+     * Creates a new hash map with long keys and values of the specified type, initialized with the given capacity.
+     *
+     * @param initialCapacity the initial capacity of the map, must be a non-negative integer.
+     * @return a new instance of a map with long keys and generic type values,
+     * either a fastutil Long2ObjectOpenHashMap or a standard HashMap.
+     */
+    public static <V> Map<Long, V> newLongVHashMap(@Range(from = 0, to = Integer.MAX_VALUE) int initialCapacity) {
+        return fastutil ? new it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap<>(initialCapacity) : new HashMap<>(initialCapacity);
     }
 
     /**
@@ -64,6 +106,26 @@ public class Collections {
     }
 
     /**
+     * Creates a new hash map with Float keys and generic type V values.
+     *
+     * @param <V> the type of mapped values
+     * @return a new instance of a map with Float keys and V values
+     */
+    public static <V> Map<Float, V> newFloatVHashMap() {
+        return fastutil ? new it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap<>() : new HashMap<>();
+    }
+
+    /**
+     * Creates a new hash map with keys of type float and values of type V.
+     *
+     * @param initialCapacity the initial capacity of the hash map, must be non-negative
+     * @return a new hash map with float keys and values of type V
+     */
+    public static <V> Map<Float, V> newFloatVHashMap(@Range(from = 0, to = Integer.MAX_VALUE) int initialCapacity) {
+        return fastutil ? new it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap<>(initialCapacity) : new HashMap<>(initialCapacity);
+    }
+
+    /**
      * Creates a new map with keys of type {@code K} and values of type {@link Float}.
      *
      * @param <K> the type of keys in the map
@@ -82,6 +144,26 @@ public class Collections {
      */
     public static <K> Map<K, Float> newFloatHashMap(@Range(from = 0, to = Integer.MAX_VALUE) int initialCapacity) {
         return fastutil ? new it.unimi.dsi.fastutil.objects.Object2FloatOpenHashMap<>(initialCapacity) : new HashMap<>(initialCapacity);
+    }
+
+    /**
+     * Creates and returns a new map with a key type of Double and a value type V.
+     *
+     * @param <V> the type of the values in the map
+     * @return a new map instance with Double keys and V values
+     */
+    public static <V> Map<Double, V> newDoubleVHashMap() {
+        return fastutil ? new it.unimi.dsi.fastutil.doubles.Double2ObjectOpenHashMap<>() : new HashMap<>();
+    }
+
+    /**
+     * Creates a new hash map where the keys are of type Double and the values are of type V.
+     *
+     * @param initialCapacity the initial capacity of the map; must be a non-negative integer.
+     * @return a new map instance where the key type is Double and the value type is V.
+     */
+    public static <V> Map<Double, V> newDoubleVHashMap(@Range(from = 0, to = Integer.MAX_VALUE) int initialCapacity) {
+        return fastutil ? new it.unimi.dsi.fastutil.doubles.Double2ObjectOpenHashMap<>(initialCapacity) : new HashMap<>(initialCapacity);
     }
 
     /**

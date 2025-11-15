@@ -44,7 +44,7 @@ public enum ProtocolVersion {
     ;
 
     private static final int MINIMUM_SUPPORTED_PROTOCOL_VERSION = 3;
-    private static final Map<Integer, ProtocolVersion> PROTOCOL_VERSION_MAP = Collections.newHashMap();
+    private static final Map<Integer, ProtocolVersion> PROTOCOL_VERSION_MAP = Collections.newIntVHashMap();
 
     static {
         for (ProtocolVersion version : ProtocolVersion.values()) {

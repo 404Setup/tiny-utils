@@ -1,5 +1,7 @@
 package one.pkg.tinyutils.maven;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -30,6 +32,7 @@ public class MavenLocalRepositoryLocator {
         return getDefaultRepositoryPath();
     }
 
+    @Nullable
     private static String getRepositoryFromUserSettings() {
         String userHome = System.getProperty("user.home");
         Path settingsPath = Paths.get(userHome, M2_SETTINGS_DIR, SETTINGS_FILE_NAME);
@@ -41,6 +44,7 @@ public class MavenLocalRepositoryLocator {
         return null;
     }
 
+    @Nullable
     private static String getRepositoryFromGlobalSettings() {
         String mavenHome = getMavenHome();
 
@@ -54,6 +58,7 @@ public class MavenLocalRepositoryLocator {
         return null;
     }
 
+    @Nullable
     private static String getMavenHome() {
         String mavenHome = System.getenv("M2_HOME");
         if (mavenHome != null && !mavenHome.isEmpty()) {
@@ -68,7 +73,8 @@ public class MavenLocalRepositoryLocator {
         return null;
     }
 
-    private static String parseLocalRepositoryFromSettings(File settingsFile) {
+    @Nullable
+    private static String parseLocalRepositoryFromSettings(@NotNull File settingsFile) {
         try (FileInputStream fis = new FileInputStream(settingsFile)) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -95,7 +101,8 @@ public class MavenLocalRepositoryLocator {
         return null;
     }
 
-    private static String expandPath(String path) {
+    @Nullable
+    private static String expandPath(@Nullable String path) {
         if (path == null || path.isEmpty()) {
             return path;
         }

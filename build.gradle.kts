@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "one.pkg"
-version = "2.0.0"
+version = "2.1.0"
 
 repositories {
     mavenCentral()
@@ -36,12 +36,16 @@ java {
 tasks.jar {
     manifest {
         val map = mutableMapOf<String, String>()
-        map["Specification-Title"] = "TinyUtils"
+        map["Specification-Title"] = rootProject.name
         map["Specification-Vendor"] = "404Setup"
         map["Specification-Version"] = version as String
         map["Specification-License"] = "The Apache License, Version 2.0"
         map["Specification-Src"] = "https://github.com/404Setup/tiny-utils"
         attributes(map)
+    }
+
+    from("LICENSE") {
+        rename { "${it}_${rootProject.name}" }
     }
 }
 
