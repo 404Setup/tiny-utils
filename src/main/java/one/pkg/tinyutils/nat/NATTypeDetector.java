@@ -11,7 +11,7 @@ import java.util.Random;
 public class NATTypeDetector {
 
     // https://github.com/pradt2/always-online-stun
-    private static final String[] STUN_SERVERS = {
+    public static final String[] STUN_SERVERS = {
             "turn.cloudflare.com:3478",
             "stun.nextcloud.com:3478",
             "stun.sipnet.com:3478",
@@ -184,7 +184,7 @@ public class NATTypeDetector {
         return result;
     }
 
-    private static String findAvailableStunServer() {
+    public static String findAvailableStunServer() {
         for (String server : STUN_SERVERS) {
             try {
                 String[] parts = server.split(":");
@@ -199,7 +199,7 @@ public class NATTypeDetector {
         return null;
     }
 
-    private static STUNResponse sendSTUNRequest(
+    static STUNResponse sendSTUNRequest(
             DatagramSocket socket,
             String stunHost,
             int stunPort,
@@ -229,7 +229,7 @@ public class NATTypeDetector {
         }
     }
 
-    private static byte[] buildSTUNBindingRequest(boolean changeIP, boolean changePort) {
+    static byte[] buildSTUNBindingRequest(boolean changeIP, boolean changePort) {
         ByteBuffer buffer = ByteBuffer.allocate(28);
 
         // Header
@@ -260,8 +260,10 @@ public class NATTypeDetector {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(data, 0, length);
 
-            /*short messageType = */buffer.getShort();
-            /*short messageLength = */buffer.getShort();
+            /*short messageType = */
+            buffer.getShort();
+            /*short messageLength = */
+            buffer.getShort();
             int magicCookie = buffer.getInt();
 
             buffer.position(buffer.position() + 12);
@@ -354,14 +356,19 @@ public class NATTypeDetector {
 
         @Override
         public String toString() {
-            return String.format(
-                    "NAT Type: %s\nLocal Address: %s:%d\nPublic Address: %s:%d\nSupports Hairpinning: %s",
+            return String.format("""
+                            NATDetectionResult{
+                                nat_type: %s,
+                                local_address: %s:%d,
+                                public_address: %s:%d,
+                                supports_hairpinning: %s
+                            }""",
                     natType.getDescription(), localIP, localPort, publicIP, publicPort, hairpinning
             );
         }
     }
 
-    private static class STUNResponse {
+    static class STUNResponse {
         InetAddress mappedAddress;
         int mappedPort;
         InetAddress changedAddress;
