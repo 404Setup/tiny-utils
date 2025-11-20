@@ -1,4 +1,4 @@
-package one.pkg.tinyutils.download;
+package one.pkg.tinyutils.network.download;
 
 import org.jetbrains.annotations.Nullable;
 

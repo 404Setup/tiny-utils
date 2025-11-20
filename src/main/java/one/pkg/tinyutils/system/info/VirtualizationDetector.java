@@ -1,5 +1,5 @@
 
-package one.pkg.tinyutils.system;
+package one.pkg.tinyutils.system.info;
 
 import java.io.*;
 import java.nio.file.*;

@@ -1,4 +1,4 @@
-package one.pkg.tinyutils.nat;
+package one.pkg.tinyutils.network.nat;
 
 import java.net.*;
 import java.util.ArrayList;

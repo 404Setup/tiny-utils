@@ -1,17 +1,17 @@
-package one.pkg.tinyutils.nat;
+package one.pkg.tinyutils.network.nat;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 @SuppressWarnings("all")
 public class NATTypeDetector {
 
     // https://github.com/pradt2/always-online-stun
-    public static final String[] STUN_SERVERS = {
+    public final String[] STUN_SERVERS = {
             "turn.cloudflare.com:3478",
             "stun.nextcloud.com:3478",
             "stun.sipnet.com:3478",
@@ -104,7 +104,7 @@ public class NATTypeDetector {
             "stun.pure-ip.com:3478"
     };
 
-    public static NATDetectionResult detectNATType() {
+    public NATDetectionResult detectNATType() {
         NATDetectionResult result = new NATDetectionResult();
 
         try {
@@ -118,63 +118,56 @@ public class NATTypeDetector {
             String stunHost = parts[0];
             int stunPort = Integer.parseInt(parts[1]);
 
-            DatagramSocket socket = new DatagramSocket();
-            socket.setSoTimeout(3000);
+            try (DatagramSocket socket = new DatagramSocket()) {
+                socket.setSoTimeout(3000);
 
-            InetAddress localAddress = socket.getLocalAddress();
-            result.localIP = localAddress.getHostAddress();
-            result.localPort = socket.getLocalPort();
+                InetAddress localAddress = socket.getLocalAddress();
+                result.localIP = localAddress.getHostAddress();
+                result.localPort = socket.getLocalPort();
 
-            STUNResponse test1 = sendSTUNRequest(socket, stunHost, stunPort, false, false);
-            if (test1 == null) {
-                socket.close();
-                result.natType = NATType.NO_CONNECTION;
-                return result;
-            }
-
-            result.publicIP = test1.mappedAddress.getHostAddress();
-            result.publicPort = test1.mappedPort;
-
-            if (result.localIP.equals(result.publicIP) && result.localPort == result.publicPort) {
-                socket.close();
-                result.natType = NATType.PUBLIC_NETWORK;
-                return result;
-            }
-
-            STUNResponse test2 = sendSTUNRequest(socket, stunHost, stunPort, true, true);
-            if (test2 != null) {
-                socket.close();
-                result.natType = NATType.FULL_CONE;
-                return result;
-            }
-
-            STUNResponse test3 = sendSTUNRequest(socket, stunHost, stunPort, false, true);
-            if (test3 != null) {
-                socket.close();
-                result.natType = NATType.RESTRICTED_CONE;
-                return result;
-            }
-
-            DatagramSocket socket2 = new DatagramSocket();
-            socket2.setSoTimeout(3000);
-
-            STUNResponse test4 = sendSTUNRequest(socket2, stunHost, stunPort, false, false);
-            socket2.close();
-
-            if (test4 != null) {
-                if (test4.mappedPort == result.publicPort) {
-                    socket.close();
-                    result.natType = NATType.PORT_RESTRICTED_CONE;
-                    return result;
-                } else {
-                    socket.close();
-                    result.natType = NATType.SYMMETRIC;
+                STUNResponse test1 = sendSTUNRequest(socket, stunHost, stunPort, false, false);
+                if (test1 == null) {
+                    result.natType = NATType.NO_CONNECTION;
                     return result;
                 }
-            }
 
-            socket.close();
-            result.natType = NATType.PORT_RESTRICTED_CONE;
+                result.publicIP = test1.mappedAddress.getHostAddress();
+                result.publicPort = test1.mappedPort;
+
+                if (result.localIP.equals(result.publicIP) && result.localPort == result.publicPort) {
+                    result.natType = NATType.PUBLIC_NETWORK;
+                    return result;
+                }
+
+                STUNResponse test2 = sendSTUNRequest(socket, stunHost, stunPort, true, true);
+                if (test2 != null) {
+                    result.natType = NATType.FULL_CONE;
+                    return result;
+                }
+
+                STUNResponse test3 = sendSTUNRequest(socket, stunHost, stunPort, false, true);
+                if (test3 != null) {
+                    result.natType = NATType.RESTRICTED_CONE;
+                    return result;
+                }
+
+                try (DatagramSocket socket2 = new DatagramSocket()) {
+                    socket2.setSoTimeout(3000);
+                    STUNResponse test4 = sendSTUNRequest(socket2, stunHost, stunPort, false, false);
+
+                    if (test4 != null) {
+                        if (test4.mappedPort == result.publicPort) {
+                            result.natType = NATType.PORT_RESTRICTED_CONE;
+                            return result;
+                        } else {
+                            result.natType = NATType.SYMMETRIC;
+                            return result;
+                        }
+                    }
+                }
+
+                result.natType = NATType.PORT_RESTRICTED_CONE;
+            }
 
         } catch (Exception e) {
             result.natType = NATType.UNKNOWN;
@@ -184,7 +177,7 @@ public class NATTypeDetector {
         return result;
     }
 
-    public static String findAvailableStunServer() {
+    public String findAvailableStunServer() {
         for (String server : STUN_SERVERS) {
             try {
                 String[] parts = server.split(":");
@@ -199,7 +192,7 @@ public class NATTypeDetector {
         return null;
     }
 
-    static STUNResponse sendSTUNRequest(
+    STUNResponse sendSTUNRequest(
             DatagramSocket socket,
             String stunHost,
             int stunPort,
@@ -229,7 +222,7 @@ public class NATTypeDetector {
         }
     }
 
-    static byte[] buildSTUNBindingRequest(boolean changeIP, boolean changePort) {
+    byte[] buildSTUNBindingRequest(boolean changeIP, boolean changePort) {
         ByteBuffer buffer = ByteBuffer.allocate(28);
 
         // Header
@@ -237,11 +230,14 @@ public class NATTypeDetector {
         buffer.putShort((short) 8); // Message Length
 
         // Transaction ID (128 bits)
-        Random random = new Random();
-        buffer.putInt(0x2112A442); // Magic Cookie
-        buffer.putInt(random.nextInt());
-        buffer.putInt(random.nextInt());
-        buffer.putInt(random.nextInt());
+        int magicCookie = 0x2112A442;
+        buffer.putInt(magicCookie);
+        int r1 = ThreadLocalRandom.current().nextInt();
+        int r2 = ThreadLocalRandom.current().nextInt();
+        int r3 = ThreadLocalRandom.current().nextInt();
+        buffer.putInt(r1);
+        buffer.putInt(r2);
+        buffer.putInt(r3);
 
         // CHANGE-REQUEST attribute
         if (changeIP || changePort) {
@@ -256,7 +252,7 @@ public class NATTypeDetector {
         return buffer.array();
     }
 
-    private static STUNResponse parseSTUNResponse(byte[] data, int length) {
+    private STUNResponse parseSTUNResponse(byte[] data, int length) {
         try {
             ByteBuffer buffer = ByteBuffer.wrap(data, 0, length);
 

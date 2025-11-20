@@ -1,13 +1,16 @@
-package one.pkg.tinyutils.system;
+package one.pkg.tinyutils.system.info;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import oshi.SystemInfo;
 import oshi.hardware.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 // To run this class, you need to install Oshi Core 6.9.1 first.
-public class HardwareIdReader {
+public class HardwareReader {
     private final HardwareAbstractionLayer hardware = new SystemInfo().getHardware();
 
     public String getMotherboardId() {
@@ -59,31 +62,43 @@ public class HardwareIdReader {
                 computerSystem.getSerialNumber()
         );
     }
+    
+    public List<PhysicalMemory> getPhysicalMemories() {
+        return hardware.getMemory().getPhysicalMemory();
+    }
 
-    public String getMemoryId() {
-        List<PhysicalMemory> physicalMemories = hardware.getMemory().getPhysicalMemory();
+    @Nullable
+    public List<String> getMemoryIds() {
+        List<PhysicalMemory> physicalMemories = getPhysicalMemories();
 
         if (physicalMemories.isEmpty()) {
-            return String.valueOf(hardware.getMemory().getTotal());
+            return null;
         }
 
-        List<String> memoryIds = physicalMemories.stream()
-                .map(memory -> {
-                    String serial = memory.getSerialNumber();
-                    if (serial == null || serial.trim().isEmpty() ||
-                            "Unknown".equalsIgnoreCase(serial)) {
+        List<String> memoryIds = new ArrayList<>();
+        for (PhysicalMemory memory : physicalMemories) {
+            String serial = memory.getSerialNumber();
+            if (serial == null || serial.trim().isEmpty() ||
+                    "Unknown".equalsIgnoreCase(serial)) {
 
-                        return String.format("%s-%d-%d",
-                                memory.getManufacturer(),
-                                memory.getCapacity(),
-                                memory.getClockSpeed()
-                        );
-                    }
-                    return serial;
-                })
-                .collect(Collectors.toList());
+                memoryIds.add(String.format("%s-%d-%d",
+                        memory.getManufacturer(),
+                        memory.getCapacity(),
+                        memory.getClockSpeed()
+                ));
+            } else {
+                memoryIds.add(serial);
+            }
+        }
 
-        return String.join(",", memoryIds);
+        return memoryIds;
+    }
+
+    @NotNull
+    public String getMemoryId() {
+        var memIds = getMemoryIds();
+        if (memIds == null) return String.valueOf(hardware.getMemory().getTotal());
+        return String.join(",", memIds);
     }
 
     public String getHardwareFingerprint() {

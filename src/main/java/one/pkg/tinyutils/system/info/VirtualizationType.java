@@ -1,4 +1,4 @@
-package one.pkg.tinyutils.system;
+package one.pkg.tinyutils.system.info;
 
 public enum VirtualizationType {
     VMWARE("VMware"),
