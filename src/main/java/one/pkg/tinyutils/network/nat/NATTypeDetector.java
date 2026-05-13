@@ -123,9 +123,10 @@ public class NATTypeDetector {
             try (DatagramSocket socket = new DatagramSocket()) {
                 socket.setSoTimeout(3000);
 
-                InetAddress localAddress = socket.getLocalAddress();
-                result.localIP = localAddress.getHostAddress();
+                socket.connect(InetAddress.getByName(stunHost), stunPort);
+                result.localIP = socket.getLocalAddress().getHostAddress();
                 result.localPort = socket.getLocalPort();
+                socket.disconnect();
 
                 STUNResponse test1 = sendSTUNRequest(socket, stunHost, stunPort, false, false);
                 if (test1 == null) {

@@ -71,6 +71,17 @@ public class NATProxy {
     }
 
     /**
+     * Starts UDP forwarding by automatically detecting STUN mapping and forwarding to the specified internal port.
+     *
+     * @param internalPort The port number of the internal destination to which packets are forwarded.
+     * @throws Exception If an error occurs during STUN detection or UDP forwarding setup.
+     */
+    public void startUDPForward(int internalPort) throws Exception {
+        STUNMappingResult mapping = getSTUNMapping();
+        startUDPForward(mapping, "127.0.0.1", internalPort);
+    }
+
+    /**
      * Starts forwarding UDP packets between an external STUN-mapped socket and an internal host/port.
      * This method spawns a new thread for handling the UDP packet forwarding process.
      *
@@ -142,8 +153,20 @@ public class NATProxy {
     }
 
     /**
+     * Starts TCP forwarding by automatically detecting STUN mapping and forwarding to the specified internal port.
+     * The listen port is determined by the STUN mapping's local port.
+     *
+     * @param internalPort The port number of the internal destination to which connections are forwarded.
+     * @throws Exception If an error occurs during STUN detection or TCP forwarding setup.
+     */
+    public void startTCPForward(int internalPort) throws Exception {
+        STUNMappingResult mapping = getSTUNMapping();
+        startTCPForward(mapping.localPort, "127.0.0.1", internalPort);
+    }
+
+    /**
      * Starts a TCP forwarding proxy that listens for incoming TCP connections on the specified port
-     * and
+     * and forwards them to the internal host/port.
      */
     public void startTCPForward(int listenPort, String internalHost, int internalPort) throws Exception {
         if (running.getAndSet(true)) {
