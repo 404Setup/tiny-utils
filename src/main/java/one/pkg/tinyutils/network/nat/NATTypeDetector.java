@@ -114,6 +114,8 @@ public class NATTypeDetector {
                 return result;
             }
 
+            result.stunServer = stunServer;
+
             String[] parts = stunServer.split(":");
             String stunHost = parts[0];
             int stunPort = Integer.parseInt(parts[1]);
@@ -225,11 +227,9 @@ public class NATTypeDetector {
     byte[] buildSTUNBindingRequest(boolean changeIP, boolean changePort) {
         ByteBuffer buffer = ByteBuffer.allocate(28);
 
-        // Header
-        buffer.putShort((short) 0x0001); // Binding Request
-        buffer.putShort((short) 8); // Message Length
+        buffer.putShort((short) 0x0001);
+        buffer.putShort((short) 8);
 
-        // Transaction ID (128 bits)
         int magicCookie = 0x2112A442;
         buffer.putInt(magicCookie);
         int r1 = ThreadLocalRandom.current().nextInt();
@@ -239,10 +239,9 @@ public class NATTypeDetector {
         buffer.putInt(r2);
         buffer.putInt(r3);
 
-        // CHANGE-REQUEST attribute
         if (changeIP || changePort) {
-            buffer.putShort((short) 0x0003); // CHANGE-REQUEST
-            buffer.putShort((short) 4); // Length
+            buffer.putShort((short) 0x0003);
+            buffer.putShort((short) 4);
             int changeValue = 0;
             if (changeIP) changeValue |= 0x04;
             if (changePort) changeValue |= 0x02;
@@ -270,7 +269,7 @@ public class NATTypeDetector {
                 short attrType = buffer.getShort();
                 short attrLength = buffer.getShort();
 
-                if (attrType == 0x0001 || attrType == 0x0020) { // MAPPED-ADDRESS or XOR-MAPPED-ADDRESS
+                if (attrType == 0x0001 || attrType == 0x0020) {
                     buffer.get();
                     byte family = buffer.get();
                     short port = buffer.getShort();
@@ -278,8 +277,7 @@ public class NATTypeDetector {
                     byte[] addressBytes = new byte[family == 0x01 ? 4 : 16];
                     buffer.get(addressBytes);
 
-                    if (attrType == 0x0020) { // XOR-MAPPED-ADDRESS
-                        // XOR with magic cookie
+                    if (attrType == 0x0020) {
                         port ^= (short) (magicCookie >> 16);
                         for (int i = 0; i < addressBytes.length; i++) {
                             addressBytes[i] ^= (byte) (magicCookie >> (24 - i * 8));
@@ -289,7 +287,7 @@ public class NATTypeDetector {
                     response.mappedAddress = InetAddress.getByAddress(addressBytes);
                     response.mappedPort = port & 0xFFFF;
 
-                } else if (attrType == 0x0005) { // CHANGED-ADDRESS
+                } else if (attrType == 0x0005) {
                     buffer.get();
                     byte family = buffer.get();
                     short port = buffer.getShort();
@@ -317,28 +315,34 @@ public class NATTypeDetector {
     }
 
     public enum NATType {
-        PUBLIC_NETWORK("Public Network"),
-        NO_CONNECTION("No Connection"),
-        FULL_CONE("Full Cone NAT"),
-        RESTRICTED_CONE("Restricted Cone NAT"),
-        PORT_RESTRICTED_CONE("Port Restricted Cone NAT"),
-        SYMMETRIC("Symmetric NAT"),
-        FULL_TO_RESTRICTED("Full Cone to Restricted Cone"),
-        FULL_TO_PORT_RESTRICTED("Full Cone to Port Restricted Cone"),
-        FULL_TO_SYMMETRIC("Full Cone to Symmetric"),
-        RESTRICTED_TO_PORT_RESTRICTED("Restricted Cone to Port Restricted Cone"),
-        RESTRICTED_TO_SYMMETRIC("Restricted Cone to Symmetric"),
-        PORT_RESTRICTED_TO_SYMMETRIC("Port Restricted Cone to Symmetric"),
-        UNKNOWN("Unknown");
+        PUBLIC_NETWORK("Public Network", 0),
+        NO_CONNECTION("No Connection", -1),
+        FULL_CONE("Full Cone NAT", 1),
+        RESTRICTED_CONE("Restricted Cone NAT", 2),
+        PORT_RESTRICTED_CONE("Port Restricted Cone NAT", 3),
+        SYMMETRIC("Symmetric NAT", 4),
+        FULL_TO_RESTRICTED("Full Cone to Restricted Cone", 2),
+        FULL_TO_PORT_RESTRICTED("Full Cone to Port Restricted Cone", 3),
+        FULL_TO_SYMMETRIC("Full Cone to Symmetric", 4),
+        RESTRICTED_TO_PORT_RESTRICTED("Restricted Cone to Port Restricted Cone", 3),
+        RESTRICTED_TO_SYMMETRIC("Restricted Cone to Symmetric", 4),
+        PORT_RESTRICTED_TO_SYMMETRIC("Port Restricted Cone to Symmetric", 4),
+        UNKNOWN("Unknown", -1);
 
         private final String description;
+        private final int type;
 
-        NATType(String description) {
+        NATType(String description, int type) {
             this.description = description;
+            this.type = type;
         }
 
         public String getDescription() {
             return description;
+        }
+
+        public int getType() {
+            return type;
         }
     }
 
@@ -349,17 +353,20 @@ public class NATTypeDetector {
         public String publicIP;
         public int publicPort;
         public boolean hairpinning = false;
+        public String stunServer;
 
         @Override
         public String toString() {
             return String.format("""
                             NATDetectionResult{
                                 nat_type: %s,
+                                type_id: %S
                                 local_address: %s:%d,
                                 public_address: %s:%d,
-                                supports_hairpinning: %s
+                                supports_hairpinning: %s,
+                                stun_server: %s
                             }""",
-                    natType.getDescription(), localIP, localPort, publicIP, publicPort, hairpinning
+                    natType.description, natType.type, localIP, localPort, publicIP, publicPort, hairpinning, stunServer
             );
         }
     }

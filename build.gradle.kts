@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "one.pkg"
-version = "2.2.0"
+version = "2.3.0"
 
 repositories {
     mavenCentral()
@@ -22,6 +22,7 @@ dependencies {
     compileOnly("com.google.guava:guava:33.4.0-jre")
     compileOnly("com.google.code.gson:gson:2.12.1")
     compileOnly("com.github.oshi:oshi-core:6.9.1")
+    compileOnly("io.netty:netty-all:4.1.119.Final")
 }
 
 val targetJavaVersion = 17
