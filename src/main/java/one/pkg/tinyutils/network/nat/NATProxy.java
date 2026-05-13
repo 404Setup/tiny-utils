@@ -76,9 +76,11 @@ public class NATProxy {
      * @param internalPort The port number of the internal destination to which packets are forwarded.
      * @throws Exception If an error occurs during STUN detection or UDP forwarding setup.
      */
-    public void startUDPForward(int internalPort) throws Exception {
+    public NATTypeDetector.NATDetectionResult startUDPForward(int internalPort) throws Exception {
+        NATTypeDetector.NATDetectionResult result = detector.detectNATType();
         STUNMappingResult mapping = getSTUNMapping();
         startUDPForward(mapping, "127.0.0.1", internalPort);
+        return result;
     }
 
     /**
@@ -159,9 +161,11 @@ public class NATProxy {
      * @param internalPort The port number of the internal destination to which connections are forwarded.
      * @throws Exception If an error occurs during STUN detection or TCP forwarding setup.
      */
-    public void startTCPForward(int internalPort) throws Exception {
+    public NATTypeDetector.NATDetectionResult startTCPForward(int internalPort) throws Exception {
+        NATTypeDetector.NATDetectionResult result = detector.detectNATType();
         STUNMappingResult mapping = getSTUNMapping();
         startTCPForward(mapping.localPort, "127.0.0.1", internalPort);
+        return result;
     }
 
     /**

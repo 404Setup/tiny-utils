@@ -13,7 +13,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.io.IOException;
-import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -31,31 +30,14 @@ public class NettyProxy {
      * @param internalPort The port number of the internal destination to which packets are forwarded.
      * @throws Exception If an error occurs during STUN detection or UDP forwarding setup.
      */
-    public void startUDPForward(int internalPort) throws Exception {
+    public NATTypeDetector.NATDetectionResult startUDPForward(int internalPort) throws Exception {
         NATTypeDetector detector = new NATTypeDetector();
-        String stunServer = detector.findAvailableStunServer();
-        if (stunServer == null) {
-            throw new java.io.IOException("No available STUN server found");
+        NATTypeDetector.NATDetectionResult result = detector.detectNATType();
+        if (result.stunServer == null) {
+            throw new IOException("No available STUN server found");
         }
-        String[] parts = stunServer.split(":");
-        String stunHost = parts[0];
-        int stunPort = Integer.parseInt(parts[1]);
-
-        DatagramSocket tempSocket = new DatagramSocket();
-        tempSocket.setSoTimeout(3000);
-        try {
-            NATTypeDetector.STUNResponse response = detector.sendSTUNRequest(tempSocket, stunHost, stunPort, false, false);
-            if (response == null) {
-                tempSocket.close();
-                throw new java.io.IOException("STUN request failed");
-            }
-            int localPort = tempSocket.getLocalPort();
-            tempSocket.close();
-            startUDPForward(localPort, "127.0.0.1", internalPort);
-        } catch (Exception e) {
-            tempSocket.close();
-            throw e;
-        }
+        startUDPForward(result.localPort, "127.0.0.1", internalPort);
+        return result;
     }
 
     /**
@@ -90,31 +72,14 @@ public class NettyProxy {
      * @param internalPort The port number of the internal destination to which connections are forwarded.
      * @throws Exception If an error occurs during STUN detection or TCP forwarding setup.
      */
-    public void startTCPForward(int internalPort) throws Exception {
+    public NATTypeDetector.NATDetectionResult startTCPForward(int internalPort) throws Exception {
         NATTypeDetector detector = new NATTypeDetector();
-        String stunServer = detector.findAvailableStunServer();
-        if (stunServer == null) {
+        NATTypeDetector.NATDetectionResult result = detector.detectNATType();
+        if (result.stunServer == null) {
             throw new IOException("No available STUN server found");
         }
-        String[] parts = stunServer.split(":");
-        String stunHost = parts[0];
-        int stunPort = Integer.parseInt(parts[1]);
-
-        DatagramSocket tempSocket = new DatagramSocket();
-        tempSocket.setSoTimeout(3000);
-        try {
-            NATTypeDetector.STUNResponse response = detector.sendSTUNRequest(tempSocket, stunHost, stunPort, false, false);
-            if (response == null) {
-                tempSocket.close();
-                throw new IOException("STUN request failed");
-            }
-            int localPort = tempSocket.getLocalPort();
-            tempSocket.close();
-            startTCPForward(localPort, "127.0.0.1", internalPort);
-        } catch (Exception e) {
-            tempSocket.close();
-            throw e;
-        }
+        startTCPForward(result.localPort, "127.0.0.1", internalPort);
+        return result;
     }
 
     /**
