@@ -78,12 +78,13 @@ public class Version implements Comparable<Version> {
     }
 
     private static String getDigits(String str) {
-        StringBuilder digits = new StringBuilder();
-        for (char c : str.toCharArray()) {
-            if (!Character.isDigit(c)) break;
-            digits.append(c);
+        // Bolt: Optimization - Avoid intermediate StringBuilder and charArray allocations
+        int len = str.length();
+        int i = 0;
+        while (i < len && Character.isDigit(str.charAt(i))) {
+            i++;
         }
-        return digits.toString();
+        return i == len ? str : str.substring(0, i);
     }
 
     private static boolean allDigits(String[] parts) {
