@@ -68,3 +68,7 @@
 ## 2024-05-24 - HTML Clean Multiple String.replaceAll Allocation Avoidance
 **Learning:** Chaining multiple `.replaceAll` operations with precompiled Regex `Pattern`s (e.g., stripping tags, then normalizing spaces, then normalizing newlines) allocates intermediate strings at each step and runs the regex engine multiple times across the full text. This is extremely slow compared to a single-pass character processing loop using a `StringBuilder`. Replacing four consecutive regex operations with a single O(n) loop resulted in ~3-4x faster execution times in benchmarks.
 **Action:** Replace multiple consecutive regex `.replaceAll` operations with a single-pass `StringBuilder` loop when performing text sanitization or normalization to significantly reduce string allocations and scanning overhead.
+
+## 2026-06-16 - Matcher.replaceFirst overhead for prefix removal
+**Learning:** Using `Matcher.replaceFirst(regex)` introduces high overhead for simple prefix operations (like removing leading whitespace), even when the regex `Pattern` is precompiled. Creating the `Matcher` object and evaluating the replacement is significantly slower than manually finding the index and using string substring.
+**Action:** Use a manual character scan loop and `String.substring()` for extracting or replacing strings at a specific known prefix instead of using regex `replaceFirst()`.

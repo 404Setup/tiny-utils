@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 public class HTMLParser {
     private static final Map<String, String> HTML_ENTITY_UNESCAPE_MAP = Collections.newLinkedHashMap(5);
     private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]+>");
-    private static final Pattern LEADING_WHITESPACE_PATTERN = Pattern.compile("^\\s+");
 
     static {
         HTML_ENTITY_UNESCAPE_MAP.put("&lt;", "<");
@@ -31,7 +30,14 @@ public class HTMLParser {
     public static String decodeAndStripHtml(String base64EncodedString) {
         String decoded = new String(Base64.getDecoder().decode(base64EncodedString));
         String withoutTags = HTML_TAG_PATTERN.matcher(decoded).replaceAll("");
-        return LEADING_WHITESPACE_PATTERN.matcher(withoutTags).replaceFirst("");
+
+        // Bolt: Optimization - Avoid regex allocation and parsing overhead for leading whitespace removal
+        int i = 0;
+        int len = withoutTags.length();
+        while (i < len && Character.isWhitespace(withoutTags.charAt(i))) {
+            i++;
+        }
+        return i == 0 ? withoutTags : withoutTags.substring(i);
     }
 
     /**
