@@ -11,18 +11,16 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class Hash {
-    private static final MessageDigest digest;
-
-    static {
+    private static final ThreadLocal<MessageDigest> digest = ThreadLocal.withInitial(() -> {
         try {
-            digest = MessageDigest.getInstance("SHA-256");
+            return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-    }
+    });
 
     public static byte[] hash(byte[] data) {
-        return digest.digest(data);
+        return digest.get().digest(data);
     }
 
     public static byte[] hash(@NotNull String data) {
@@ -42,19 +40,26 @@ public class Hash {
         try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(file))) {
             byte[] buffer = new byte[65536];
             int bytesRead;
+            MessageDigest md = digest.get();
 
             while ((bytesRead = bis.read(buffer)) != -1) {
-                digest.update(buffer, 0, bytesRead);
+                md.update(buffer, 0, bytesRead);
             }
-            return digest.digest();
+            return md.digest();
         } finally {
-            digest.reset();
+            digest.get().reset();
         }
     }
 
+    private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
+
     public static String format(byte[] hash) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : hash) sb.append(String.format("%02x", b));
-        return sb.toString();
+        char[] hexChars = new char[hash.length * 2];
+        for (int j = 0; j < hash.length; j++) {
+            int v = hash[j] & 0xFF;
+            hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+        }
+        return new String(hexChars);
     }
 }
