@@ -21,3 +21,7 @@
 ## 2026-06-16 - String.replaceFirst for simple prefixes
 **Learning:** Using `String.replaceFirst("^~", replacement)` incurs regex compilation and parsing overhead for a simple string prefix replacement. It also risks treating characters like `$` or `\` in the replacement string as regex back-references or escapes, which is a common source of bugs.
 **Action:** For simple string prefix replacements, avoid regex entirely. Use `string.substring()` and string concatenation instead for a faster and safer operation.
+
+## 2025-02-12 - Regex vs String manipulation for parsing versions
+**Learning:** `String.split(regex)` and `Pattern.matcher(input).matches()` incur a high performance penalty due to regex evaluation and the creation of temporary arrays. Manual character array loops and string index manipulation (`indexOf` and `substring`) operate significantly faster (~10x for `isNumeric`) by eliminating regex compilation and array allocations.
+**Action:** When parsing well-defined formats like version strings, prefer manual character loops and `indexOf`/`substring` over `String.split` and `Pattern.matches` for performance-critical logic.
