@@ -9,8 +9,21 @@ import java.util.regex.Pattern;
  * The VersionComparator class provides utility methods for comparing software version strings.
  */
 public class VersionComparator {
-    private static final Pattern NUMERIC_PATTERN = Pattern.compile("\\d+");
     private static final String DEFAULT_VERSION_SEGMENT = "0";
+
+    /**
+     * Checks if the given string consists only of numeric digits.
+     * Bolt: Optimization - Avoid regex matcher for performance
+     */
+    private static boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) return false;
+        for (int i = 0; i < str.length(); i++) {
+            if (!Character.isDigit(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Splits the given version string into its individual components.
@@ -20,9 +33,34 @@ public class VersionComparator {
      * followed by the optional suffix, if present
      */
     private static List<String> splitVersion(String version) {
-        String mainVersion = version.split("-")[0].split("\\+")[0];
-        String[] versionParts = mainVersion.split("\\.");
-        String suffix = version.contains("-") ? version.substring(version.indexOf('-') + 1) : "";
+        // Bolt: Optimization - Use indexOf and substring instead of split() for zero allocation parsing
+        int dashIdx = version.indexOf('-');
+        int plusIdx = version.indexOf('+');
+        int endIdx = version.length();
+
+        if (dashIdx != -1) endIdx = Math.min(endIdx, dashIdx);
+        if (plusIdx != -1) endIdx = Math.min(endIdx, plusIdx);
+
+        String mainVersion = version.substring(0, endIdx);
+
+        // Bolt: Optimization - Avoid regex Pattern.compile internally by manually parsing
+        int count = 1;
+        for (int i = 0; i < mainVersion.length(); i++) {
+            if (mainVersion.charAt(i) == '.') count++;
+        }
+
+        String[] versionParts = new String[count];
+        int start = 0;
+        int partIdx = 0;
+        for (int i = 0; i < mainVersion.length(); i++) {
+            if (mainVersion.charAt(i) == '.') {
+                versionParts[partIdx++] = mainVersion.substring(start, i);
+                start = i + 1;
+            }
+        }
+        versionParts[partIdx] = mainVersion.substring(start);
+
+        String suffix = dashIdx != -1 ? version.substring(dashIdx + 1) : "";
         List<String> result = Collections.newArrayList(versionParts);
         result.add(suffix);
         return result;
@@ -38,8 +76,9 @@ public class VersionComparator {
      * or a positive integer if vLocal is greater than vRemote
      */
     private static int compareVersionSegments(String segment1, String segment2) {
-        boolean isSegment1Numeric = NUMERIC_PATTERN.matcher(segment1).matches();
-        boolean isSegment2Numeric = NUMERIC_PATTERN.matcher(segment2).matches();
+        // Bolt: Optimization - Use manual character loop instead of regex matcher for checking numeric strings
+        boolean isSegment1Numeric = isNumeric(segment1);
+        boolean isSegment2Numeric = isNumeric(segment2);
 
         if (isSegment1Numeric && isSegment2Numeric) {
             return Integer.compare(Integer.parseInt(segment1), Integer.parseInt(segment2));
