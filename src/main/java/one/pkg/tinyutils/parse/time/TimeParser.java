@@ -41,7 +41,8 @@ public class TimeParser {
     }
 
     private static LocalDateTime calculateFutureTime(LocalDateTime now, String arg) throws ParseException {
-        for (TimeUnit unit : TimeUnit.values()) {
+        // Bolt: Optimization - Use Enum[] values cache instead of calling values() array allocations
+        for (TimeUnit unit : TimeUnit.VALUES) {
             if (arg.endsWith(unit.getSuffix())) {
                 long value = parseTimeValue(unit.getSuffix(), arg);
                 return unit.addTime(now, value);

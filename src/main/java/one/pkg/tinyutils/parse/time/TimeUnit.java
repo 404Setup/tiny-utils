@@ -67,6 +67,17 @@ public enum TimeUnit {
         this.suffix = suffix;
     }
 
+    public static final TimeUnit[] VALUES = values();
+
+    // Bolt: Optimization - Use Map lookup to avoid repeated Enum.values() allocations
+    private static final java.util.Map<String, TimeUnit> SUFFIX_MAP = new java.util.HashMap<>();
+
+    static {
+        for (TimeUnit unit : VALUES) {
+            SUFFIX_MAP.put(unit.getSuffix(), unit);
+        }
+    }
+
     /**
      * Determines the {@code TimeUnit} associated with the specified string suffix.
      * <p>
@@ -79,10 +90,9 @@ public enum TimeUnit {
      * @throws ParseException if the specified suffix does not match any supported time unit
      */
     public static TimeUnit fromSuffix(String suffix) throws ParseException {
-        for (TimeUnit unit : values()) {
-            if (unit.getSuffix().equals(suffix)) {
-                return unit;
-            }
+        TimeUnit unit = SUFFIX_MAP.get(suffix);
+        if (unit != null) {
+            return unit;
         }
         throw new ParseException("Unsupported time unit: " + suffix);
     }
