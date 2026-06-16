@@ -13,3 +13,7 @@
 ## 2024-06-16 - InputStream IO Operations Optimization
 **Learning:** Native `InputStream.transferTo()` delegates to zero-copy memory transfers (like `sendfile`) on supported operating systems, bypassing the JVM heap entirely. In testing with 10MB data blobs, manual buffering took ~4000ms compared to ~800ms for `transferTo()` - a 5x performance improvement.
 **Action:** Always use `InputStream.transferTo(OutputStream)` and `InputStream.readAllBytes()` instead of manually allocating `byte[]` arrays for streaming in Java 9+ codebases.
+
+## 2026-06-16 - String.replaceFirst for simple prefixes
+**Learning:** Using `String.replaceFirst("^~", replacement)` incurs regex compilation and parsing overhead for a simple string prefix replacement. It also risks treating characters like `$` or `\` in the replacement string as regex back-references or escapes, which is a common source of bugs.
+**Action:** For simple string prefix replacements, avoid regex entirely. Use `string.substring()` and string concatenation instead for a faster and safer operation.
