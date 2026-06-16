@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 public class HardwareReader {
     private final HardwareAbstractionLayer hardware = new SystemInfo().getHardware();
 
-    // Bolt: Optimization - Extracted checking logic to avoid redundant String allocations from trim() by using isBlank()
     private boolean isUnknownOrEmpty(@Nullable String str) {
         return str == null || str.isBlank() || "Unknown".equalsIgnoreCase(str);
     }

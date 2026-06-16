@@ -44,7 +44,6 @@ public class HTMLParser {
      * @return the escaped string suitable for HTML content
      */
     public static String escapeHtml(String input) {
-        // Bolt: Optimization - Avoid intermediate string allocations and early return if no escaping needed
         if (input == null || input.isEmpty()) {
             return input;
         }
@@ -105,7 +104,6 @@ public class HTMLParser {
      * @return the unescaped raw string
      */
     public static String unescapeHtml(String escapedString) {
-        // Bolt: Optimization - Avoid intermediate substring allocations and Map lookups by parsing manually
         int ampIdx = escapedString.indexOf('&');
         if (ampIdx == -1) {
             return escapedString;
@@ -120,27 +118,27 @@ public class HTMLParser {
                 if (semicolonIndex > i) {
                     int entityLen = semicolonIndex - i + 1;
                     if (entityLen == 4) {
-                        if (escapedString.charAt(i+1) == 'l' && escapedString.charAt(i+2) == 't') {
+                        if (escapedString.charAt(i + 1) == 'l' && escapedString.charAt(i + 2) == 't') {
                             result.append('<');
                             i = semicolonIndex;
                             continue;
-                        } else if (escapedString.charAt(i+1) == 'g' && escapedString.charAt(i+2) == 't') {
+                        } else if (escapedString.charAt(i + 1) == 'g' && escapedString.charAt(i + 2) == 't') {
                             result.append('>');
                             i = semicolonIndex;
                             continue;
                         }
                     } else if (entityLen == 5) {
-                        if (escapedString.charAt(i+1) == 'a' && escapedString.charAt(i+2) == 'm' && escapedString.charAt(i+3) == 'p') {
+                        if (escapedString.charAt(i + 1) == 'a' && escapedString.charAt(i + 2) == 'm' && escapedString.charAt(i + 3) == 'p') {
                             result.append('&');
                             i = semicolonIndex;
                             continue;
-                        } else if (escapedString.charAt(i+1) == '#' && escapedString.charAt(i+2) == '3' && escapedString.charAt(i+3) == '9') {
+                        } else if (escapedString.charAt(i + 1) == '#' && escapedString.charAt(i + 2) == '3' && escapedString.charAt(i + 3) == '9') {
                             result.append('\'');
                             i = semicolonIndex;
                             continue;
                         }
                     } else if (entityLen == 6) {
-                        if (escapedString.charAt(i+1) == 'q' && escapedString.charAt(i+2) == 'u' && escapedString.charAt(i+3) == 'o' && escapedString.charAt(i+4) == 't') {
+                        if (escapedString.charAt(i + 1) == 'q' && escapedString.charAt(i + 2) == 'u' && escapedString.charAt(i + 3) == 'o' && escapedString.charAt(i + 4) == 't') {
                             result.append('"');
                             i = semicolonIndex;
                             continue;

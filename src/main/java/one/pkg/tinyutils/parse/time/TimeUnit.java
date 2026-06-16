@@ -4,6 +4,8 @@ package one.pkg.tinyutils.parse.time;
 import one.pkg.tinyutils.exception.ParseException;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The TimeUnit enum represents various units of time, each of which can be used to
@@ -54,6 +56,15 @@ public enum TimeUnit {
         }
     };
 
+    public static final TimeUnit[] VALUES = values();
+    private static final Map<String, TimeUnit> SUFFIX_MAP = new HashMap<>();
+
+    static {
+        for (TimeUnit unit : VALUES) {
+            SUFFIX_MAP.put(unit.getSuffix(), unit);
+        }
+    }
+
     private final String suffix;
 
     /**
@@ -65,17 +76,6 @@ public enum TimeUnit {
      */
     TimeUnit(String suffix) {
         this.suffix = suffix;
-    }
-
-    public static final TimeUnit[] VALUES = values();
-
-    // Bolt: Optimization - Use Map lookup to avoid repeated Enum.values() allocations
-    private static final java.util.Map<String, TimeUnit> SUFFIX_MAP = new java.util.HashMap<>();
-
-    static {
-        for (TimeUnit unit : VALUES) {
-            SUFFIX_MAP.put(unit.getSuffix(), unit);
-        }
     }
 
     /**

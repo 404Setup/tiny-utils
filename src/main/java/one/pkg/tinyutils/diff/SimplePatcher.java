@@ -209,7 +209,6 @@ public class SimplePatcher {
         byte[] srcData = readAllBytes(newFile);
         byte[] dstData = readAllBytes(oldFile);
 
-        // Patch header
         patch.writeInt(srcData.length);
         patch.writeInt(dstData.length);
 
@@ -585,7 +584,6 @@ public class SimplePatcher {
             if (input instanceof ByteArrayOutputStream baos) {
                 baos.writeTo(output);
             } else if (input instanceof InputStream is) {
-                // Bolt: Optimization - Utilize Java 9+ native transferTo for significantly faster zero-copy stream operations
                 is.transferTo(output);
             }
         } else {
@@ -611,7 +609,6 @@ public class SimplePatcher {
      * @throws IOException if an I/O error occurs while reading the InputStream
      */
     private static byte[] readAllBytes(InputStream is) throws IOException {
-        // Bolt: Optimization - Utilize Java 9+ native readAllBytes for significantly faster stream memory buffering
         return is.readAllBytes();
     }
 }

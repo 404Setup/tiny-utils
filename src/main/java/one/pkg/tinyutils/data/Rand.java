@@ -25,7 +25,6 @@ public class Rand {
         char[] id = new char[length];
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
-        // Bolt: Optimization - Use direct array access instead of String.charAt for faster random string generation
         for (int i = 0; i < length; i++) {
             id[i] = CHARS_ARRAY[random.nextInt(CHARS_ARRAY.length)];
         }

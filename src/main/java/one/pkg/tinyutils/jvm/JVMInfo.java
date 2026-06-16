@@ -24,7 +24,6 @@ public record JVMInfo(String id, String version, String vendor, boolean headless
                     version = version.substring(0, dot);
                 }
             }
-            // Bolt: Optimization - Use indexOf and substring instead of split() to avoid regex and array allocation overhead
             int dashIndex = version.indexOf('-');
             if (dashIndex != -1) {
                 version = version.substring(0, dashIndex);

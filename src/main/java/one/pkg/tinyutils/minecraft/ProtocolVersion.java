@@ -43,10 +43,9 @@ public enum ProtocolVersion {
     PLAY_1_21(767), PLAY_1_21_2(768), PLAY_1_21_4(769), PLAY_1_21_5(770), PLAY_1_21_6(771), PLAY_1_21_7(772), PLAY_1_21_9(773), PLAY_1_21_11(774),
     ;
 
+    public static final ProtocolVersion[] VALUES = values();
     private static final int MINIMUM_SUPPORTED_PROTOCOL_VERSION = 3;
     private static final Map<Integer, ProtocolVersion> PROTOCOL_VERSION_MAP = Collections.newIntVHashMap();
-
-    public static final ProtocolVersion[] VALUES = values();
 
     static {
         for (ProtocolVersion version : VALUES) {

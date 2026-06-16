@@ -3,6 +3,9 @@ package one.pkg.tinyutils.minecraft;
 import one.pkg.tinyutils.Reflect;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Enum representing various Minecraft server platforms.
  */
@@ -20,11 +23,20 @@ public enum Platform {
     Forge("Forge", "net.minecraftforge.fml.ModContainer"),
     Unknown("Unknown", "Unknown");
 
+    public static final Platform[] VALUES = values();
+    private static final Map<String, Platform> NAME_MAP = new HashMap<>();
     /**
      * A cached value of the detected platform. The platform is only determined once using reflection
      * and the result is cached for future calls to {@link #get()}.
      */
     private static Platform platform;
+
+    static {
+        for (Platform p : VALUES) {
+            NAME_MAP.put(p.name.toLowerCase(), p);
+        }
+    }
+
     private final String name;
     private final String[] classPath;
 
@@ -95,17 +107,6 @@ public enum Platform {
 
         platform = Unknown;
         return platform;
-    }
-
-    public static final Platform[] VALUES = values();
-
-    // Bolt: Optimization - Use Map lookup to avoid repeated Enum.values() allocations
-    private static final java.util.Map<String, Platform> NAME_MAP = new java.util.HashMap<>();
-
-    static {
-        for (Platform p : VALUES) {
-            NAME_MAP.put(p.name.toLowerCase(), p);
-        }
     }
 
     /**

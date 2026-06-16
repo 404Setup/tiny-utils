@@ -52,7 +52,6 @@ public class Hash {
     }
 
     public static String format(byte[] hash) {
-        // Bolt: Optimization - Utilize Java 17 HexFormat for faster array conversion
         return java.util.HexFormat.of().formatHex(hash);
     }
 }

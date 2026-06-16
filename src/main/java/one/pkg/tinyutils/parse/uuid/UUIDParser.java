@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public class UUIDParser {
 
+    private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
+
     /**
      * Formats a given string representation of a UUID into its canonical form with dashes.
      * The input must be a valid UUID string without dashes; otherwise, the method will return null.
@@ -20,19 +22,13 @@ public class UUIDParser {
         if (uuidString == null || uuidString.length() != 32) return null;
 
         try {
-            // Optimization: Avoid regex matcher and String.format by parsing bits directly.
-            // This is significantly faster and allocates fewer objects.
             long mostSigBits = Long.parseUnsignedLong(uuidString, 0, 16, 16);
             long leastSigBits = Long.parseUnsignedLong(uuidString, 16, 32, 16);
             return new UUID(mostSigBits, leastSigBits);
         } catch (NumberFormatException e) {
-            // If the string contains non-hex characters, it's not a valid UUID string.
-            // The original regex matcher would have failed to match, returning null.
             return null;
         }
     }
-
-    private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 
     /**
      * Removes all dashes from the string representation of the given UUID.

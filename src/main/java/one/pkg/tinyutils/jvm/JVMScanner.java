@@ -58,7 +58,6 @@ public class JVMScanner {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (line.contains(file.getName())) {
-                            // Bolt: Optimization - Use indexOf and substring instead of split() to avoid regex and array allocation overhead
                             int spaceIndex = line.indexOf(' ');
                             pid = spaceIndex != -1 ? line.substring(0, spaceIndex) : line;
                             try {
@@ -74,15 +73,13 @@ public class JVMScanner {
 
                                 result.add(info);
                                 vm.detach();
-                            } catch (Exception e) {
-                                // Skip JVMs that cannot be attached to
+                            } catch (Exception ignored) {
                             }
                         }
                     }
                 }
             }
-        } catch (Exception e) {
-            // Handle exceptions during path scanning
+        } catch (Exception ignored) {
         }
 
         return result;

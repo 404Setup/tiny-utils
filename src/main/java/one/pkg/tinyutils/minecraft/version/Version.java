@@ -78,7 +78,6 @@ public class Version implements Comparable<Version> {
     }
 
     private static String getDigits(String str) {
-        // Bolt: Optimization - Avoid intermediate StringBuilder and charArray allocations
         int len = str.length();
         int i = 0;
         while (i < len && Character.isDigit(str.charAt(i))) {
@@ -88,7 +87,6 @@ public class Version implements Comparable<Version> {
     }
 
     private static boolean allDigits(String[] parts) {
-        // Bolt: Optimization - Avoid regex evaluation for simple string checking
         for (String part : parts) {
             if (part.isEmpty()) return false;
             for (int i = 0; i < part.length(); i++) {

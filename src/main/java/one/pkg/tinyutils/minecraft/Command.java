@@ -15,7 +15,6 @@ public class Command {
 
     public static String getPermission(String permission) {
         String p = permission;
-        // Bolt: Optimization - Avoid regex for simple suffix replacement to improve speed and reduce allocations
         if (Platform.get() == Platform.BungeeCord) {
             int lastDot = p.lastIndexOf('.');
             if (lastDot != -1 && lastDot < p.length() - 1) {

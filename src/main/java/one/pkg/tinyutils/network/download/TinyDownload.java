@@ -150,7 +150,6 @@ public class TinyDownload {
             return performDownload(threadCount, url, outputFile, header, proxy);
         } catch (Exception e) {
             if (retriesLeft > 0) {
-                // retry
                 return downloadWithRetry(threadCount, url, outputFile, header, proxy, retriesLeft - 1);
             } else {
                 throw new RuntimeException("Download failed, maximum number of retries reached", e);
@@ -164,7 +163,6 @@ public class TinyDownload {
             return performDownloadToStream(url, outputStream, header, proxy);
         } catch (Exception e) {
             if (retriesLeft > 0) {
-                // retry
                 return downloadToStreamWithRetry(url, outputStream, header, proxy, retriesLeft - 1);
             } else {
                 throw new RuntimeException("Download failed, maximum number of retries reached", e);
@@ -201,7 +199,6 @@ public class TinyDownload {
         HttpURLConnection connection = createConnection(urlObj, header, proxy);
 
         try (InputStream inputStream = connection.getInputStream()) {
-            // Bolt: Optimization - Utilize Java 9+ native transferTo for significantly faster zero-copy stream operations
             inputStream.transferTo(outputStream);
             outputStream.flush();
             return true;
@@ -216,8 +213,6 @@ public class TinyDownload {
 
         try (InputStream inputStream = connection.getInputStream();
              FileOutputStream outputStream = new FileOutputStream(outputFile)) {
-
-            // Bolt: Optimization - Utilize Java 9+ native transferTo for significantly faster zero-copy stream operations
             inputStream.transferTo(outputStream);
             return true;
         } finally {
@@ -268,7 +263,6 @@ public class TinyDownload {
             for (int i = 0; i < threadCount; i++) {
                 File tempFile = new File(tempDir, "part_" + i);
                 try (FileInputStream inputStream = new FileInputStream(tempFile)) {
-                    // Bolt: Optimization - Utilize Java 9+ native transferTo for significantly faster zero-copy stream operations
                     inputStream.transferTo(outputStream);
                 }
             }
@@ -336,7 +330,6 @@ public class TinyDownload {
                     lastException = e;
                     retries++;
                     if (retries < MAX_RETRIES) {
-                        // retry
                         Thread.sleep(1000L * retries);
                     }
                 } finally {

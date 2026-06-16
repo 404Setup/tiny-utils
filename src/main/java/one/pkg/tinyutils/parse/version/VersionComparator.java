@@ -3,7 +3,6 @@ package one.pkg.tinyutils.parse.version;
 import one.pkg.tinyutils.Collections;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * The VersionComparator class provides utility methods for comparing software version strings.
@@ -33,7 +32,6 @@ public class VersionComparator {
      * followed by the optional suffix, if present
      */
     private static List<String> splitVersion(String version) {
-        // Bolt: Optimization - Use indexOf and substring instead of split() for zero allocation parsing
         int dashIdx = version.indexOf('-');
         int plusIdx = version.indexOf('+');
         int endIdx = version.length();
@@ -43,7 +41,6 @@ public class VersionComparator {
 
         String mainVersion = version.substring(0, endIdx);
 
-        // Bolt: Optimization - Avoid regex Pattern.compile internally by manually parsing
         int count = 1;
         for (int i = 0; i < mainVersion.length(); i++) {
             if (mainVersion.charAt(i) == '.') count++;
@@ -76,7 +73,6 @@ public class VersionComparator {
      * or a positive integer if vLocal is greater than vRemote
      */
     private static int compareVersionSegments(String segment1, String segment2) {
-        // Bolt: Optimization - Use manual character loop instead of regex matcher for checking numeric strings
         boolean isSegment1Numeric = isNumeric(segment1);
         boolean isSegment2Numeric = isNumeric(segment2);
 
