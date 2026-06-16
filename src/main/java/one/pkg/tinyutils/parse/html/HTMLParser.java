@@ -44,33 +44,39 @@ public class HTMLParser {
      * @return the escaped string suitable for HTML content
      */
     public static String escapeHtml(String input) {
+        // Bolt: Optimization - Avoid intermediate string allocations and early return if no escaping needed
         if (input == null || input.isEmpty()) {
             return input;
         }
-        StringBuilder escaped = new StringBuilder(input.length());
-        for (char c : input.toCharArray()) {
-            escaped.append(getHtmlEscapedChar(c));
+
+        int len = input.length();
+        int i = 0;
+        for (; i < len; i++) {
+            char c = input.charAt(i);
+            if (c == '&' || c == '<' || c == '>' || c == '"' || c == '\'') {
+                break;
+            }
+        }
+
+        if (i == len) {
+            return input;
+        }
+
+        StringBuilder escaped = new StringBuilder(len + 16);
+        escaped.append(input, 0, i);
+
+        for (; i < len; i++) {
+            char c = input.charAt(i);
+            switch (c) {
+                case '&' -> escaped.append("&amp;");
+                case '<' -> escaped.append("&lt;");
+                case '>' -> escaped.append("&gt;");
+                case '"' -> escaped.append("&quot;");
+                case '\'' -> escaped.append("&#39;");
+                default -> escaped.append(c);
+            }
         }
         return escaped.toString();
-    }
-
-    /**
-     * Converts a single character to its HTML-escaped equivalent if it is a special character.
-     * <p>
-     * If the character does not require escaping, the character itself is returned as a string.
-     *
-     * @param c the character to be HTML-escaped
-     * @return the HTML-escaped string representation of the character, or the character itself as a string if no escaping is required
-     */
-    private static String getHtmlEscapedChar(char c) {
-        return switch (c) {
-            case '&' -> "&amp;";
-            case '<' -> "&lt;";
-            case '>' -> "&gt;";
-            case '"' -> "&quot;";
-            case '\'' -> "&#39;";
-            default -> String.valueOf(c);
-        };
     }
 
     /**

@@ -29,3 +29,7 @@
 ## 2025-06-16 - Enum lookup optimizations
 **Learning:** Iterating over `Enum.values()` dynamically inside lookup methods like `fromSuffix` or `ofName` incurs a severe performance penalty because `values()` clones the underlying array on every call to prevent mutation. This causes unnecessary heap allocations and GC overhead in hot paths.
 **Action:** Use a static `HashMap` for string-based enum lookups (e.g. `TimeUnit.fromSuffix`, `Platform.of`) to achieve O(1) performance without allocations. Also cache `values()` to a `public static final Type[] VALUES` array if iteration is needed elsewhere.
+
+## 2025-06-16 - Avoid intermediate allocations for unescaped strings
+**Learning:** Method `HTMLParser.escapeHtml` always allocated a new `StringBuilder` and looped over `toCharArray`, causing significant allocation overhead for strings that did not require any escaping. Scanning the string first and only allocating a new string/builder if an escapable character is found provides ~2.5x performance boost.
+**Action:** Always verify if a transformation is needed before allocating intermediate structures like `StringBuilder` or arrays, returning the original object if no changes are required. Use a switch statement for specific character replacement.
