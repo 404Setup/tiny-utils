@@ -46,3 +46,6 @@
 ## 2024-05-24 - HTML parsing overhead
 **Learning:** During HTML unescaping, relying on `substring()` to extract entities and then looking them up in a `Map` creates massive GC pressure and is significantly slower than parsing chars manually inline. Also, a chained `if-else` is slightly faster than a `switch` when appending escaped char fragments.
 **Action:** Replace `Map` lookups with manual char and length matching on the original `String` when doing token replacement or unescaping in hot paths, and test `if-else` vs `switch` structures.
+## 2024-06-16 - Matcher.replaceFirst for suffix manipulation
+**Learning:** Using `Matcher.replaceFirst(regex)` introduces high overhead for simple suffix operations (like adding a character after the last dot), even when the regex `Pattern` is precompiled. Creating the `Matcher` object and evaluating the replacement is significantly slower (~3x-4x) than manually finding the index and using string concatenation.
+**Action:** Use `String.lastIndexOf()` and `String.substring()` for inserting or replacing strings at a specific known index instead of using regex `replaceFirst()`.

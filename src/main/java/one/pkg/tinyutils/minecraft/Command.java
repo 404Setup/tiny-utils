@@ -1,11 +1,7 @@
 package one.pkg.tinyutils.minecraft;
 
-import java.util.regex.Pattern;
-
 @SuppressWarnings("unused")
 public class Command {
-    // Bolt: Optimization - Precompile regex pattern to avoid repeated compilation overhead in getPermission
-    private static final Pattern PERMISSION_SUFFIX_PATTERN = Pattern.compile("\\.([^.]+)$");
 
     public static String getName(String name) {
         String n = name;
@@ -19,10 +15,17 @@ public class Command {
 
     public static String getPermission(String permission) {
         String p = permission;
+        // Bolt: Optimization - Avoid regex for simple suffix replacement to improve speed and reduce allocations
         if (Platform.get() == Platform.BungeeCord) {
-            p = PERMISSION_SUFFIX_PATTERN.matcher(permission).replaceFirst(".b$1");
+            int lastDot = p.lastIndexOf('.');
+            if (lastDot != -1 && lastDot < p.length() - 1) {
+                p = p.substring(0, lastDot) + ".b" + p.substring(lastDot + 1);
+            }
         } else if (Platform.get() == Platform.Velocity) {
-            p = PERMISSION_SUFFIX_PATTERN.matcher(permission).replaceFirst(".v$1");
+            int lastDot = p.lastIndexOf('.');
+            if (lastDot != -1 && lastDot < p.length() - 1) {
+                p = p.substring(0, lastDot) + ".v" + p.substring(lastDot + 1);
+            }
         }
 
         return p;
