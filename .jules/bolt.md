@@ -13,3 +13,7 @@
 ## 2024-06-16 - InputStream IO Operations Optimization
 **Learning:** Native `InputStream.transferTo()` delegates to zero-copy memory transfers (like `sendfile`) on supported operating systems, bypassing the JVM heap entirely. In testing with 10MB data blobs, manual buffering took ~4000ms compared to ~800ms for `transferTo()` - a 5x performance improvement.
 **Action:** Always use `InputStream.transferTo(OutputStream)` and `InputStream.readAllBytes()` instead of manually allocating `byte[]` arrays for streaming in Java 9+ codebases.
+
+## 2024-05-18 - Avoid UUID.toString() and String.replace() for UUID formatting
+**Learning:** This codebase optimizes UUID parsing and formatting by manually bit-shifting and char array processing rather than relying on intermediate strings or RegEx, leading to faster execution and fewer allocations. The existing `format()` already does this for parsing; similar logic applies to `removeDashes()`.
+**Action:** When working with UUIDs or parsing heavily used strings in this project, prefer direct bit/character manipulation to avoid garbage collection overhead and improve speed.
