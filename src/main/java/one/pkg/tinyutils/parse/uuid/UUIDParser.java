@@ -7,8 +7,6 @@ import java.util.UUID;
 
 public class UUIDParser {
 
-    private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
-
     /**
      * Formats a given string representation of a UUID into its canonical form with dashes.
      * The input must be a valid UUID string without dashes; otherwise, the method will return null.
@@ -33,6 +31,8 @@ public class UUIDParser {
             return null;
         }
     }
+
+    private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 
     /**
      * Removes all dashes from the string representation of the given UUID.
