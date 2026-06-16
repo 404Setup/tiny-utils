@@ -614,15 +614,7 @@ public class SimplePatcher {
      * @throws IOException if an I/O error occurs while reading the InputStream
      */
     private static byte[] readAllBytes(InputStream is) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[CHUNK_SIZE];
-
-        while ((nRead = is.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
-        }
-
-        buffer.flush();
-        return buffer.toByteArray();
+        // Bolt: Optimization - Utilize Java 9+ native readAllBytes for significantly faster stream memory buffering
+        return is.readAllBytes();
     }
 }
