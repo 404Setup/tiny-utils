@@ -11,9 +11,6 @@ public class HTMLParser {
     private static final Map<String, String> HTML_ENTITY_UNESCAPE_MAP = Collections.newLinkedHashMap(5);
     private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]+>");
     private static final Pattern LEADING_WHITESPACE_PATTERN = Pattern.compile("^\\s+");
-    private static final Pattern BR_PATTERN = Pattern.compile("(?i)<br\\s*/?>");
-    private static final Pattern MULTIPLE_NEWLINES_PATTERN = Pattern.compile("\\n+");
-    private static final Pattern MULTIPLE_SPACES_PATTERN = Pattern.compile(" {2,}");
 
     static {
         HTML_ENTITY_UNESCAPE_MAP.put("&lt;", "<");
@@ -89,12 +86,69 @@ public class HTMLParser {
             return input;
         }
 
-        String normalizedBreaks = BR_PATTERN.matcher(input).replaceAll("\n");
-        String withoutHtmlTags = HTML_TAG_PATTERN.matcher(normalizedBreaks).replaceAll("");
-        String singleNewlines = MULTIPLE_NEWLINES_PATTERN.matcher(withoutHtmlTags).replaceAll("\n");
-        String singleSpaces = MULTIPLE_SPACES_PATTERN.matcher(singleNewlines).replaceAll(" ");
+        // Bolt: Optimization - Avoid multiple string allocations and regex scans by using a single-pass StringBuilder
+        StringBuilder sb = new StringBuilder(input.length());
+        boolean lastSpace = false;
+        boolean lastNewline = false;
 
-        return singleSpaces.trim();
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+
+            if (c == '<') {
+                // Peek ahead to see if it's a valid HTML tag or a simple < character
+                int tagEnd = -1;
+                for (int peek = i + 1; peek < input.length(); peek++) {
+                    if (input.charAt(peek) == '>') {
+                        tagEnd = peek;
+                        break;
+                    }
+                }
+
+                if (tagEnd != -1) {
+                    // Check for <br> variants before skipping
+                    if (i + 3 < input.length() &&
+                            (input.charAt(i + 1) == 'b' || input.charAt(i + 1) == 'B') &&
+                            (input.charAt(i + 2) == 'r' || input.charAt(i + 2) == 'R')) {
+                        int j = i + 3;
+                        while (j < tagEnd && Character.isWhitespace(input.charAt(j))) j++;
+                        if (j < tagEnd && input.charAt(j) == '/') j++;
+                        // If we reached the tagEnd correctly
+                        if (j == tagEnd) {
+                            if (!lastNewline) {
+                                sb.append('\n');
+                                lastNewline = true;
+                                lastSpace = false;
+                            }
+                            i = tagEnd;
+                            continue;
+                        }
+                    }
+                    // It's a tag, skip it completely
+                    i = tagEnd;
+                    continue;
+                }
+            }
+
+            if (c == '\n') {
+                if (!lastNewline) {
+                    sb.append('\n');
+                    lastNewline = true;
+                    lastSpace = false;
+                }
+            } else if (c == ' ') {
+                if (!lastSpace) {
+                    sb.append(' ');
+                    lastSpace = true;
+                    lastNewline = false;
+                }
+            } else {
+                sb.append(c);
+                lastSpace = false;
+                lastNewline = false;
+            }
+        }
+
+        return sb.toString().trim();
     }
 
     /**
