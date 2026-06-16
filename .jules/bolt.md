@@ -42,3 +42,7 @@
 ## 2024-05-18 - String.toCharArray() and StringBuilder overhead
 **Learning:** `String.toCharArray()` creates a brand-new array copy of the string's internal character array every time it is called, causing unnecessary heap allocations. Using `StringBuilder` for simple sequential string extraction also creates intermediate buffers. Replacing these with a `while` loop accessing characters via `String.charAt()` and extracting via `String.substring()` avoids these allocations entirely, operating significantly faster (e.g. 1000ms down to 14ms for 10M iterations).
 **Action:** When extracting a prefix or scanning characters in a string, avoid `toCharArray()` and `StringBuilder`. Use `String.length()`, a loop with `String.charAt()`, and `String.substring()` to achieve zero-allocation performance.
+
+## 2024-05-24 - HTML parsing overhead
+**Learning:** During HTML unescaping, relying on `substring()` to extract entities and then looking them up in a `Map` creates massive GC pressure and is significantly slower than parsing chars manually inline. Also, a chained `if-else` is slightly faster than a `switch` when appending escaped char fragments.
+**Action:** Replace `Map` lookups with manual char and length matching on the original `String` when doing token replacement or unescaping in hot paths, and test `if-else` vs `switch` structures.

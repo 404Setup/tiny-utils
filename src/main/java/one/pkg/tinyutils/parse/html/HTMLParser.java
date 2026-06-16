@@ -67,14 +67,12 @@ public class HTMLParser {
 
         for (; i < len; i++) {
             char c = input.charAt(i);
-            switch (c) {
-                case '&' -> escaped.append("&amp;");
-                case '<' -> escaped.append("&lt;");
-                case '>' -> escaped.append("&gt;");
-                case '"' -> escaped.append("&quot;");
-                case '\'' -> escaped.append("&#39;");
-                default -> escaped.append(c);
-            }
+            if (c == '&') escaped.append("&amp;");
+            else if (c == '<') escaped.append("&lt;");
+            else if (c == '>') escaped.append("&gt;");
+            else if (c == '"') escaped.append("&quot;");
+            else if (c == '\'') escaped.append("&#39;");
+            else escaped.append(c);
         }
         return escaped.toString();
     }
@@ -107,22 +105,46 @@ public class HTMLParser {
      * @return the unescaped raw string
      */
     public static String unescapeHtml(String escapedString) {
-        if (escapedString.indexOf('&') == -1) {
+        // Bolt: Optimization - Avoid intermediate substring allocations and Map lookups by parsing manually
+        int ampIdx = escapedString.indexOf('&');
+        if (ampIdx == -1) {
             return escapedString;
         }
         StringBuilder result = new StringBuilder(escapedString.length());
+        result.append(escapedString, 0, ampIdx);
         int len = escapedString.length();
-        for (int i = 0; i < len; i++) {
+        for (int i = ampIdx; i < len; i++) {
             char current = escapedString.charAt(i);
             if (current == '&') {
                 int semicolonIndex = escapedString.indexOf(';', i);
                 if (semicolonIndex > i) {
-                    String entity = escapedString.substring(i, semicolonIndex + 1);
-                    String replacement = HTML_ENTITY_UNESCAPE_MAP.get(entity);
-                    if (replacement != null) {
-                        result.append(replacement);
-                        i = semicolonIndex;
-                        continue;
+                    int entityLen = semicolonIndex - i + 1;
+                    if (entityLen == 4) {
+                        if (escapedString.charAt(i+1) == 'l' && escapedString.charAt(i+2) == 't') {
+                            result.append('<');
+                            i = semicolonIndex;
+                            continue;
+                        } else if (escapedString.charAt(i+1) == 'g' && escapedString.charAt(i+2) == 't') {
+                            result.append('>');
+                            i = semicolonIndex;
+                            continue;
+                        }
+                    } else if (entityLen == 5) {
+                        if (escapedString.charAt(i+1) == 'a' && escapedString.charAt(i+2) == 'm' && escapedString.charAt(i+3) == 'p') {
+                            result.append('&');
+                            i = semicolonIndex;
+                            continue;
+                        } else if (escapedString.charAt(i+1) == '#' && escapedString.charAt(i+2) == '3' && escapedString.charAt(i+3) == '9') {
+                            result.append('\'');
+                            i = semicolonIndex;
+                            continue;
+                        }
+                    } else if (entityLen == 6) {
+                        if (escapedString.charAt(i+1) == 'q' && escapedString.charAt(i+2) == 'u' && escapedString.charAt(i+3) == 'o' && escapedString.charAt(i+4) == 't') {
+                            result.append('"');
+                            i = semicolonIndex;
+                            continue;
+                        }
                     }
                 }
             }
