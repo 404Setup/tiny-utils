@@ -59,11 +59,45 @@ public class Version implements Comparable<Version> {
             pat = matcher.group(3).charAt(0) - 'a';
             verType = VersionType.SNAPSHOT;
         } else {
-            String[] parts = trimmed.split("\\.");
-            maj = parseIntOrZero(parts.length > 0 ? getDigits(parts[0]) : "0");
-            min = parseIntOrZero(parts.length > 1 ? getDigits(parts[1]) : "0");
-            pat = parseIntOrZero(parts.length > 2 ? getDigits(parts[2]) : "0");
-            verType = (parts.length >= 2 && allDigits(parts)) ? VersionType.RELEASE : VersionType.UNKNOWN;
+            // Bolt: Optimization - Avoid split("\\.") overhead by manually parsing dot separation.
+            // We simulate string.split("\\.") behavior without trailing empty strings.
+            int end = trimmed.length();
+            while (end > 0 && trimmed.charAt(end - 1) == '.') {
+                end--;
+            }
+            String sliced = trimmed.substring(0, end);
+
+            int dotIndex1 = sliced.indexOf('.');
+            int dotIndex2 = dotIndex1 != -1 ? sliced.indexOf('.', dotIndex1 + 1) : -1;
+            int dotIndex3 = dotIndex2 != -1 ? sliced.indexOf('.', dotIndex2 + 1) : -1;
+
+            String part1 = dotIndex1 != -1 ? sliced.substring(0, dotIndex1) : sliced;
+            String part2 = dotIndex1 != -1 ? (dotIndex2 != -1 ? sliced.substring(dotIndex1 + 1, dotIndex2) : sliced.substring(dotIndex1 + 1)) : "";
+            String part3 = dotIndex2 != -1 ? (dotIndex3 != -1 ? sliced.substring(dotIndex2 + 1, dotIndex3) : sliced.substring(dotIndex2 + 1)) : "";
+
+            maj = parseIntOrZero(!part1.isEmpty() ? getDigits(part1) : "0");
+            min = parseIntOrZero(!part2.isEmpty() ? getDigits(part2) : "0");
+            pat = parseIntOrZero(!part3.isEmpty() ? getDigits(part3) : "0");
+
+            // Replicate original length check: parts.length >= 2
+            boolean hasAtLeastTwoParts = dotIndex1 != -1;
+
+            // Replicate allDigits which rejected empty parts
+            boolean allPartsDigits = allDigitsString(part1) && (dotIndex1 == -1 || allDigitsString(part2)) && (dotIndex2 == -1 || allDigitsString(part3));
+
+            if (dotIndex3 != -1) {
+                int nextDot = dotIndex3;
+                while (nextDot != -1 && allPartsDigits) {
+                    int endDot = sliced.indexOf('.', nextDot + 1);
+                    String part = endDot != -1 ? sliced.substring(nextDot + 1, endDot) : sliced.substring(nextDot + 1);
+                    if (!allDigitsString(part)) {
+                        allPartsDigits = false;
+                    }
+                    nextDot = endDot;
+                }
+            }
+
+            verType = (hasAtLeastTwoParts && allPartsDigits) ? VersionType.RELEASE : VersionType.UNKNOWN;
         }
 
         this.major = maj;
@@ -88,10 +122,15 @@ public class Version implements Comparable<Version> {
 
     private static boolean allDigits(String[] parts) {
         for (String part : parts) {
-            if (part.isEmpty()) return false;
-            for (int i = 0; i < part.length(); i++) {
-                if (!Character.isDigit(part.charAt(i))) return false;
-            }
+            if (!allDigitsString(part)) return false;
+        }
+        return true;
+    }
+
+    private static boolean allDigitsString(String str) {
+        if (str.isEmpty()) return false;
+        for (int i = 0; i < str.length(); i++) {
+            if (!Character.isDigit(str.charAt(i))) return false;
         }
         return true;
     }

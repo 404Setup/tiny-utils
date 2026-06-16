@@ -94,27 +94,42 @@ public class VersionConstraintParser {
         boolean includeMin = original.startsWith("[");
         boolean includeMax = original.endsWith("]");
 
-        String[] parts = content.split(",");
-        switch (parts.length) {
-            case 1:
-                if (original.endsWith(",)")) {
-                    Version min = new Version(parts[0]);
-                    return new RangeConstraint(min, null, includeMin, false, original);
-                } else {
-                    return new ExactVersionConstraint(parts[0]);
-                }
+        // Bolt: Optimization - Avoid split(",") overhead by manually parsing comma separation
+        // Replicate string.split(",") trailing empty string removal logic
+        int end = content.length();
+        while (end > 0 && content.charAt(end - 1) == ',') {
+            end--;
+        }
+        String sliced = content.substring(0, end);
 
-            case 2:
-                Version min = new Version(parts[0]);
-                Version max = parts[1].isEmpty() ? null : new Version(parts[1]);
-                return new RangeConstraint(min, max, includeMin, includeMax, original);
+        int commaIndex = sliced.indexOf(',');
 
-            default:
-                List<VersionConstraint> constraints = Arrays.stream(parts)
-                        .filter(s -> !s.isEmpty())
-                        .map(ExactVersionConstraint::new)
-                        .collect(Collectors.toList());
-                return new OrConstraint(constraints, original);
+        if (commaIndex == -1) {
+            if (original.endsWith(",)")) {
+                Version min = new Version(sliced);
+                return new RangeConstraint(min, null, includeMin, false, original);
+            } else {
+                return new ExactVersionConstraint(sliced);
+            }
+        }
+
+        int nextCommaIndex = sliced.indexOf(',', commaIndex + 1);
+
+        if (nextCommaIndex == -1) {
+            String part1 = sliced.substring(0, commaIndex);
+            String part2 = sliced.substring(commaIndex + 1);
+
+            Version min = new Version(part1);
+            Version max = part2.isEmpty() ? null : new Version(part2);
+            return new RangeConstraint(min, max, includeMin, includeMax, original);
+        } else {
+            // More than one comma, fallback to split (rare case)
+            String[] parts = sliced.split(",");
+            List<VersionConstraint> constraints = Arrays.stream(parts)
+                    .filter(s -> !s.isEmpty())
+                    .map(ExactVersionConstraint::new)
+                    .collect(Collectors.toList());
+            return new OrConstraint(constraints, original);
         }
     }
 }
