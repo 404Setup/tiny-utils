@@ -24,7 +24,11 @@ public record JVMInfo(String id, String version, String vendor, boolean headless
                     version = version.substring(0, dot);
                 }
             }
-            version = version.split("-")[0];
+            // Bolt: Optimization - Use indexOf and substring instead of split() to avoid regex and array allocation overhead
+            int dashIndex = version.indexOf('-');
+            if (dashIndex != -1) {
+                version = version.substring(0, dashIndex);
+            }
             return Integer.parseInt(version);
         } catch (Exception e) {
             return Runtime.version().feature();
