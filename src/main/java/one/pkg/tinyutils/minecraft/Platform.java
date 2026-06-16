@@ -97,6 +97,17 @@ public enum Platform {
         return platform;
     }
 
+    public static final Platform[] VALUES = values();
+
+    // Bolt: Optimization - Use Map lookup to avoid repeated Enum.values() allocations
+    private static final java.util.Map<String, Platform> NAME_MAP = new java.util.HashMap<>();
+
+    static {
+        for (Platform p : VALUES) {
+            NAME_MAP.put(p.name.toLowerCase(), p);
+        }
+    }
+
     /**
      * Retrieves the {@link Platform} instance corresponding to the provided platform name.
      * If the name does not match any known platform, the {@link Platform#Unknown} instance will be returned.
@@ -105,12 +116,7 @@ public enum Platform {
      * @return the matching {@link Platform} instance, or {@link Platform#Unknown} if no match is found.
      */
     public static @NotNull Platform of(@NotNull String name) {
-        var n1 = name.toLowerCase();
-        for (Platform p : values()) {
-            if (p.name.toLowerCase().equals(n1))
-                return p;
-        }
-        return Unknown;
+        return NAME_MAP.getOrDefault(name.toLowerCase(), Unknown);
     }
 
     /**

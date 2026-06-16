@@ -25,3 +25,7 @@
 ## 2025-02-12 - Regex vs String manipulation for parsing versions
 **Learning:** `String.split(regex)` and `Pattern.matcher(input).matches()` incur a high performance penalty due to regex evaluation and the creation of temporary arrays. Manual character array loops and string index manipulation (`indexOf` and `substring`) operate significantly faster (~10x for `isNumeric`) by eliminating regex compilation and array allocations.
 **Action:** When parsing well-defined formats like version strings, prefer manual character loops and `indexOf`/`substring` over `String.split` and `Pattern.matches` for performance-critical logic.
+
+## 2025-06-16 - Enum lookup optimizations
+**Learning:** Iterating over `Enum.values()` dynamically inside lookup methods like `fromSuffix` or `ofName` incurs a severe performance penalty because `values()` clones the underlying array on every call to prevent mutation. This causes unnecessary heap allocations and GC overhead in hot paths.
+**Action:** Use a static `HashMap` for string-based enum lookups (e.g. `TimeUnit.fromSuffix`, `Platform.of`) to achieve O(1) performance without allocations. Also cache `values()` to a `public static final Type[] VALUES` array if iteration is needed elsewhere.
