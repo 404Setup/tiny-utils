@@ -49,3 +49,6 @@
 ## 2024-06-16 - Matcher.replaceFirst for suffix manipulation
 **Learning:** Using `Matcher.replaceFirst(regex)` introduces high overhead for simple suffix operations (like adding a character after the last dot), even when the regex `Pattern` is precompiled. Creating the `Matcher` object and evaluating the replacement is significantly slower (~3x-4x) than manually finding the index and using string concatenation.
 **Action:** Use `String.lastIndexOf()` and `String.substring()` for inserting or replacing strings at a specific known index instead of using regex `replaceFirst()`.
+## 2024-06-16 - Direct Array Access vs String.charAt
+**Learning:** In tight loops generating random strings, using `String.charAt()` is significantly slower than pre-caching the characters in a `char[]` array and using direct array access. This is due to method call overhead and bounds checking in `String.charAt()`.
+**Action:** Always prefer direct array access over `String.charAt()` in high-performance or tight loop scenarios.
