@@ -14,6 +14,10 @@
 **Learning:** Native `InputStream.transferTo()` delegates to zero-copy memory transfers (like `sendfile`) on supported operating systems, bypassing the JVM heap entirely. In testing with 10MB data blobs, manual buffering took ~4000ms compared to ~800ms for `transferTo()` - a 5x performance improvement.
 **Action:** Always use `InputStream.transferTo(OutputStream)` and `InputStream.readAllBytes()` instead of manually allocating `byte[]` arrays for streaming in Java 9+ codebases.
 
+## 2024-05-18 - Avoid UUID.toString() and String.replace() for UUID formatting
+**Learning:** This codebase optimizes UUID parsing and formatting by manually bit-shifting and char array processing rather than relying on intermediate strings or RegEx, leading to faster execution and fewer allocations. The existing `format()` already does this for parsing; similar logic applies to `removeDashes()`.
+**Action:** When working with UUIDs or parsing heavily used strings in this project, prefer direct bit/character manipulation to avoid garbage collection overhead and improve speed.
+
 ## 2026-06-16 - String.replaceFirst for simple prefixes
 **Learning:** Using `String.replaceFirst("^~", replacement)` incurs regex compilation and parsing overhead for a simple string prefix replacement. It also risks treating characters like `$` or `\` in the replacement string as regex back-references or escapes, which is a common source of bugs.
 **Action:** For simple string prefix replacements, avoid regex entirely. Use `string.substring()` and string concatenation instead for a faster and safer operation.
