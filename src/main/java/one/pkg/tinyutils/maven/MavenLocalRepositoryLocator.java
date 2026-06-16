@@ -125,7 +125,8 @@ public class MavenLocalRepositoryLocator {
         }
 
         if (path.startsWith("~")) {
-            path = path.replaceFirst("^~", System.getProperty("user.home"));
+            // Bolt: Optimization - Avoid regex evaluation for simple string prefix replacement
+            path = System.getProperty("user.home") + path.substring(1);
         }
 
         return path;
