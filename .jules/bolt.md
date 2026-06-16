@@ -33,3 +33,9 @@
 ## 2025-06-16 - Avoid intermediate allocations for unescaped strings
 **Learning:** Method `HTMLParser.escapeHtml` always allocated a new `StringBuilder` and looped over `toCharArray`, causing significant allocation overhead for strings that did not require any escaping. Scanning the string first and only allocating a new string/builder if an escapable character is found provides ~2.5x performance boost.
 **Action:** Always verify if a transformation is needed before allocating intermediate structures like `StringBuilder` or arrays, returning the original object if no changes are required. Use a switch statement for specific character replacement.
+## 2026-06-16 - Java 17 HexFormat
+**Learning:** The manual character manipulation for hex string conversion is significantly slower in newer Java versions. Java 17 introduces `java.util.HexFormat` which provides JVM-optimized array-to-hex and bit-to-hex conversions.
+**Action:** Always use `java.util.HexFormat` for byte array formatting and UUID conversions to avoid unnecessary intermediate string and array allocations.
+## 2026-06-16 - UUID String Allocations
+**Learning:** While `HexFormat` is optimized for array conversions, using `HexFormat.toHexDigits()` multiple times and concatenating the result strings causes unnecessary intermediate allocations. Manual char array formatting is still significantly faster for `UUID.removeDashes()` because it only allocates a single char array and one final String object.
+**Action:** Be mindful of intermediate string allocations when optimizing. Do not sacrifice a zero-allocation manual loop for a built-in method if that method creates temporary objects that need concatenation.
