@@ -7,6 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @SuppressWarnings("unused")
 public class Rand {
     private static final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final char[] CHARS_ARRAY = chars.toCharArray();
 
     /**
      * Generates a random alphanumeric string of the specified length.
@@ -24,8 +25,9 @@ public class Rand {
         char[] id = new char[length];
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
+        // Bolt: Optimization - Use direct array access instead of String.charAt for faster random string generation
         for (int i = 0; i < length; i++) {
-            id[i] = chars.charAt(random.nextInt(chars.length()));
+            id[i] = CHARS_ARRAY[random.nextInt(CHARS_ARRAY.length)];
         }
         return new String(id);
     }
