@@ -58,7 +58,9 @@ public class JVMScanner {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (line.contains(file.getName())) {
-                            pid = line.split(" ")[0];
+                            // Bolt: Optimization - Use indexOf and substring instead of split() to avoid regex and array allocation overhead
+                            int spaceIndex = line.indexOf(' ');
+                            pid = spaceIndex != -1 ? line.substring(0, spaceIndex) : line;
                             try {
                                 VirtualMachine vm = VirtualMachine.attach(pid);
                                 Properties props = vm.getSystemProperties();

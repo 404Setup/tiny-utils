@@ -58,3 +58,7 @@
 ## 2025-02-12 - Re-affirming InputStream.transferTo() usage
 **Learning:** Found an older pattern in `SimplePatcher.processPatchData` where `byte[] buffer = new byte[CHUNK_SIZE]` was still being used instead of `InputStream.transferTo()`. Re-affirming that zero-copy native memory transfers via `transferTo()` are consistently faster and produce less GC pressure than chunked byte array loops.
 **Action:** When streaming data between an `InputStream` and `OutputStream`, universally use `transferTo()` rather than custom buffer while loops.
+
+## 2025-02-14 - String.split() vs indexOf/substring overhead
+**Learning:** Using `String.split()` creates array allocations and incurs regex evaluation overhead even for simple single-character splits like `split("-")` or `split(" ")`. When only extracting a specific part (e.g., the first token), replacing `split()` with `indexOf()` and `substring()` is a zero-allocation optimization that is significantly faster, especially inside tight loops like reading process output.
+**Action:** When extracting a simple token separated by a single character, use `int index = str.indexOf('X');` and `str.substring(0, index)`. Always remember to check for `index != -1` to prevent `StringIndexOutOfBoundsException`.
