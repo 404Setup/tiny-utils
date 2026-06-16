@@ -3,13 +3,11 @@ package one.pkg.tinyutils.parse.version;
 import one.pkg.tinyutils.Collections;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * The VersionComparator class provides utility methods for comparing software version strings.
  */
 public class VersionComparator {
-    private static final Pattern NUMERIC_PATTERN = Pattern.compile("\\d+");
     private static final String DEFAULT_VERSION_SEGMENT = "0";
 
     /**
@@ -37,9 +35,18 @@ public class VersionComparator {
      * zero if both versions are equal,
      * or a positive integer if vLocal is greater than vRemote
      */
+    // Bolt: Optimization - Avoid Regex matcher allocation and overhead for simple numeric checks
+    private static boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) return false;
+        for (int i = 0; i < str.length(); i++) {
+            if (!Character.isDigit(str.charAt(i))) return false;
+        }
+        return true;
+    }
+
     private static int compareVersionSegments(String segment1, String segment2) {
-        boolean isSegment1Numeric = NUMERIC_PATTERN.matcher(segment1).matches();
-        boolean isSegment2Numeric = NUMERIC_PATTERN.matcher(segment2).matches();
+        boolean isSegment1Numeric = isNumeric(segment1);
+        boolean isSegment2Numeric = isNumeric(segment2);
 
         if (isSegment1Numeric && isSegment2Numeric) {
             return Integer.compare(Integer.parseInt(segment1), Integer.parseInt(segment2));

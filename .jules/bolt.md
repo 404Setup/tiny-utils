@@ -21,3 +21,6 @@
 ## 2026-06-16 - String.replaceFirst for simple prefixes
 **Learning:** Using `String.replaceFirst("^~", replacement)` incurs regex compilation and parsing overhead for a simple string prefix replacement. It also risks treating characters like `$` or `\` in the replacement string as regex back-references or escapes, which is a common source of bugs.
 **Action:** For simple string prefix replacements, avoid regex entirely. Use `string.substring()` and string concatenation instead for a faster and safer operation.
+## 2024-05-24 - Regex Overhead for Character Checks
+**Learning:** Using regex (e.g. `Pattern.compile("\\d+").matcher(str).matches()`) for simple "is this string all digits" checks incurs a ~15x performance penalty due to Matcher allocation and state machine overhead compared to a manual `char` iteration loop.
+**Action:** When validating if a string only contains digits (or other simple character classes), use a direct loop with `Character.isDigit` (or similar manual checks) instead of regex matching in hot paths like string parsing/comparisons.
