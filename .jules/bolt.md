@@ -55,3 +55,6 @@
 ## 2024-06-16 - String allocation overhead with trim().isEmpty()
 **Learning:** Using `.trim().isEmpty()` to check if a string is empty or contains only whitespace creates a brand-new string instance if the original string contains leading or trailing whitespace. This leads to unnecessary memory allocation and GC overhead. Java 11+ introduces `.isBlank()`, which performs the same check directly on the original string's character array, avoiding the allocation entirely.
 **Action:** Replace all occurrences of `.trim().isEmpty()` with `.isBlank()` to avoid redundant string allocations in whitespace checks.
+## 2025-02-12 - Re-affirming InputStream.transferTo() usage
+**Learning:** Found an older pattern in `SimplePatcher.processPatchData` where `byte[] buffer = new byte[CHUNK_SIZE]` was still being used instead of `InputStream.transferTo()`. Re-affirming that zero-copy native memory transfers via `transferTo()` are consistently faster and produce less GC pressure than chunked byte array loops.
+**Action:** When streaming data between an `InputStream` and `OutputStream`, universally use `transferTo()` rather than custom buffer while loops.
