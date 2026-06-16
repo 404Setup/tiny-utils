@@ -5,9 +5,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Base64;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class HTMLParser {
     private static final Map<String, String> HTML_ENTITY_UNESCAPE_MAP = Collections.newLinkedHashMap(5);
+    private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]+>");
+    private static final Pattern LEADING_WHITESPACE_PATTERN = Pattern.compile("^\\s+");
+    private static final Pattern BR_PATTERN = Pattern.compile("(?i)<br\\s*/?>");
+    private static final Pattern MULTIPLE_NEWLINES_PATTERN = Pattern.compile("\\n+");
+    private static final Pattern MULTIPLE_SPACES_PATTERN = Pattern.compile(" {2,}");
 
     static {
         HTML_ENTITY_UNESCAPE_MAP.put("&lt;", "<");
@@ -26,7 +32,9 @@ public class HTMLParser {
      * @return the decoded string with HTML tags removed and leading whitespace trimmed
      */
     public static String decodeAndStripHtml(String base64EncodedString) {
-        return new String(Base64.getDecoder().decode(base64EncodedString)).replaceAll("<[^>]+>", "").replaceFirst("^\\s+", "");
+        String decoded = new String(Base64.getDecoder().decode(base64EncodedString));
+        String withoutTags = HTML_TAG_PATTERN.matcher(decoded).replaceAll("");
+        return LEADING_WHITESPACE_PATTERN.matcher(withoutTags).replaceFirst("");
     }
 
     /**
@@ -78,15 +86,10 @@ public class HTMLParser {
             return input;
         }
 
-        final String BR_REGEX = "(?i)<br\\s*/?>";
-        final String HTML_TAG_REGEX = "<[^>]+>";
-        final String MULTIPLE_NEWLINES_REGEX = "\\n+";
-        final String MULTIPLE_SPACES_REGEX = " {2,}";
-
-        String normalizedBreaks = input.replaceAll(BR_REGEX, "\n");
-        String withoutHtmlTags = normalizedBreaks.replaceAll(HTML_TAG_REGEX, "");
-        String singleNewlines = withoutHtmlTags.replaceAll(MULTIPLE_NEWLINES_REGEX, "\n");
-        String singleSpaces = singleNewlines.replaceAll(MULTIPLE_SPACES_REGEX, " ");
+        String normalizedBreaks = BR_PATTERN.matcher(input).replaceAll("\n");
+        String withoutHtmlTags = HTML_TAG_PATTERN.matcher(normalizedBreaks).replaceAll("");
+        String singleNewlines = MULTIPLE_NEWLINES_PATTERN.matcher(withoutHtmlTags).replaceAll("\n");
+        String singleSpaces = MULTIPLE_SPACES_PATTERN.matcher(singleNewlines).replaceAll(" ");
 
         return singleSpaces.trim();
     }
