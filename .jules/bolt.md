@@ -52,3 +52,6 @@
 ## 2024-06-16 - Direct Array Access vs String.charAt
 **Learning:** In tight loops generating random strings, using `String.charAt()` is significantly slower than pre-caching the characters in a `char[]` array and using direct array access. This is due to method call overhead and bounds checking in `String.charAt()`.
 **Action:** Always prefer direct array access over `String.charAt()` in high-performance or tight loop scenarios.
+## 2024-06-16 - String allocation overhead with trim().isEmpty()
+**Learning:** Using `.trim().isEmpty()` to check if a string is empty or contains only whitespace creates a brand-new string instance if the original string contains leading or trailing whitespace. This leads to unnecessary memory allocation and GC overhead. Java 11+ introduces `.isBlank()`, which performs the same check directly on the original string's character array, avoiding the allocation entirely.
+**Action:** Replace all occurrences of `.trim().isEmpty()` with `.isBlank()` to avoid redundant string allocations in whitespace checks.

@@ -13,13 +13,17 @@ import java.util.stream.Collectors;
 public class HardwareReader {
     private final HardwareAbstractionLayer hardware = new SystemInfo().getHardware();
 
+    // Bolt: Optimization - Extracted checking logic to avoid redundant String allocations from trim() by using isBlank()
+    private boolean isUnknownOrEmpty(@Nullable String str) {
+        return str == null || str.isBlank() || "Unknown".equalsIgnoreCase(str);
+    }
+
     public String getMotherboardId() {
         ComputerSystem computerSystem = hardware.getComputerSystem();
         Baseboard baseboard = computerSystem.getBaseboard();
 
         String serialNumber = baseboard.getSerialNumber();
-        if (serialNumber == null || serialNumber.trim().isEmpty() ||
-                "Unknown".equalsIgnoreCase(serialNumber)) {
+        if (isUnknownOrEmpty(serialNumber)) {
             return String.format("%s-%s-%s",
                     baseboard.getManufacturer(),
                     baseboard.getModel(),
@@ -35,8 +39,7 @@ public class HardwareReader {
         List<String> diskIds = diskStores.stream()
                 .map(disk -> {
                     String serial = disk.getSerial();
-                    if (serial == null || serial.trim().isEmpty() ||
-                            "Unknown".equalsIgnoreCase(serial)) {
+                    if (isUnknownOrEmpty(serial)) {
 
                         return disk.getModel() + "-" + disk.getSize();
                     }
@@ -51,8 +54,7 @@ public class HardwareReader {
         ComputerSystem computerSystem = hardware.getComputerSystem();
 
         String uuid = computerSystem.getHardwareUUID();
-        if (uuid != null && !uuid.trim().isEmpty() &&
-                !"Unknown".equalsIgnoreCase(uuid)) {
+        if (!isUnknownOrEmpty(uuid)) {
             return uuid;
         }
 
@@ -78,8 +80,7 @@ public class HardwareReader {
         List<String> memoryIds = new ArrayList<>();
         for (PhysicalMemory memory : physicalMemories) {
             String serial = memory.getSerialNumber();
-            if (serial == null || serial.trim().isEmpty() ||
-                    "Unknown".equalsIgnoreCase(serial)) {
+            if (isUnknownOrEmpty(serial)) {
 
                 memoryIds.add(String.format("%s-%d-%d",
                         memory.getManufacturer(),
