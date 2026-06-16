@@ -87,8 +87,12 @@ public class Version implements Comparable<Version> {
     }
 
     private static boolean allDigits(String[] parts) {
+        // Bolt: Optimization - Avoid regex evaluation for simple string checking
         for (String part : parts) {
-            if (!part.matches("\\d+")) return false;
+            if (part.isEmpty()) return false;
+            for (int i = 0; i < part.length(); i++) {
+                if (!Character.isDigit(part.charAt(i))) return false;
+            }
         }
         return true;
     }
