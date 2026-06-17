@@ -72,3 +72,6 @@
 ## 2026-06-16 - Matcher.replaceFirst overhead for prefix removal
 **Learning:** Using `Matcher.replaceFirst(regex)` introduces high overhead for simple prefix operations (like removing leading whitespace), even when the regex `Pattern` is precompiled. Creating the `Matcher` object and evaluating the replacement is significantly slower than manually finding the index and using string substring.
 **Action:** Use a manual character scan loop and `String.substring()` for extracting or replacing strings at a specific known prefix instead of using regex `replaceFirst()`.
+## 2024-06-16 - WeakConcurrentHashMap Cleanup Optimization
+**Learning:** `WeakConcurrentHashMap` was calling `ReferenceQueue.poll()` on every read operation (`get`, `containsKey`, `size`, `isEmpty`, etc.) to clean up stale references. While `poll()` is fast, doing it constantly on every thread causes unnecessary lock contention and memory thrashing in high-read environments, reducing performance.
+**Action:** Restrict reference queue cleanup to write operations (`put`, `remove`, `clear`, `replace`) to eliminate contention and overhead on read paths while still ensuring eventual cleanup of stale entries.
