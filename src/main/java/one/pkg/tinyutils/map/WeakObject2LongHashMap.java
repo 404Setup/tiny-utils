@@ -63,6 +63,7 @@ public class WeakObject2LongHashMap<K> {
     /**
      * Expunges stale entries from the map.
      */
+    // Bolt: Optimization - Restrict cleanup to write operations to prevent queue.poll() contention on reads
     private void expungeStaleEntries() {
         Object ref;
         while ((ref = queue.poll()) != null) {
@@ -77,7 +78,6 @@ public class WeakObject2LongHashMap<K> {
         if (map.isEmpty()) {
             return 0;
         }
-        expungeStaleEntries();
         return map.size();
     }
 
@@ -94,7 +94,6 @@ public class WeakObject2LongHashMap<K> {
      */
     public long getLong(K key) {
         Objects.requireNonNull(key, "Key cannot be null");
-        expungeStaleEntries();
         return map.getLong(key);
     }
 
@@ -104,7 +103,6 @@ public class WeakObject2LongHashMap<K> {
      */
     public long getOrDefault(K key, long defaultValue) {
         Objects.requireNonNull(key, "Key cannot be null");
-        expungeStaleEntries();
         return map.getOrDefault(key, defaultValue);
     }
 
@@ -136,7 +134,6 @@ public class WeakObject2LongHashMap<K> {
      */
     public boolean containsKey(K key) {
         Objects.requireNonNull(key, "Key cannot be null");
-        expungeStaleEntries();
         return map.containsKey(key);
     }
 

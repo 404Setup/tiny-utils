@@ -34,6 +34,7 @@ public class WeakLinkedHashMap<K, V> implements Map<K, V> {
     }
 
     @SuppressWarnings("unchecked")
+    // Bolt: Optimization - Restrict cleanup to write operations to prevent queue.poll() contention on reads
     private void cleanup() {
         WeakKey<K> ref;
         while ((ref = (WeakKey<K>) queue.poll()) != null) {
@@ -43,33 +44,28 @@ public class WeakLinkedHashMap<K, V> implements Map<K, V> {
 
     @Override
     public int size() {
-        cleanup();
         return target.size();
     }
 
     @Override
     public boolean isEmpty() {
-        cleanup();
         return target.isEmpty();
     }
 
     @Override
     public boolean containsKey(Object key) {
-        cleanup();
         if (key == null) return false;
         return target.containsKey(new WeakKey<>(key, null));
     }
 
     @Override
     public boolean containsValue(Object value) {
-        cleanup();
         if (value == null) return false;
         return target.containsValue(value);
     }
 
     @Override
     public V get(Object key) {
-        cleanup();
         if (key == null) return null;
         return target.get(new WeakKey<Object>(key, null));
     }
@@ -106,7 +102,6 @@ public class WeakLinkedHashMap<K, V> implements Map<K, V> {
 
     @Override
     public @NotNull Set<K> keySet() {
-        cleanup();
         Set<K> keys = new LinkedHashSet<>();
         for (WeakKey<K> weakKey : target.keySet()) {
             K key = weakKey.get();
@@ -119,7 +114,6 @@ public class WeakLinkedHashMap<K, V> implements Map<K, V> {
 
     @Override
     public @NotNull Collection<V> values() {
-        cleanup();
         Collection<V> vals = new ArrayList<>();
         for (Entry<WeakKey<K>, V> entry : target.entrySet()) {
             if (entry.getKey().get() != null) {

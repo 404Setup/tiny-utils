@@ -34,6 +34,7 @@ public class WeakIntHashMap<V> {
     /**
      * Expunges stale entries from the map.
      */
+    // Bolt: Optimization - Restrict cleanup to write operations to prevent queue.poll() contention on reads
     private void expungeStaleEntries() {
         WeakValue<V> ref;
         while ((ref = (WeakValue<V>) queue.poll()) != null) {
@@ -51,7 +52,6 @@ public class WeakIntHashMap<V> {
         if (map.isEmpty()) {
             return 0;
         }
-        expungeStaleEntries();
         return map.size();
     }
 
@@ -68,7 +68,6 @@ public class WeakIntHashMap<V> {
      */
     @Nullable
     public V get(int key) {
-        expungeStaleEntries();
         WeakValue<V> ref = map.get(key);
         if (ref == null) {
             return null;
@@ -115,7 +114,6 @@ public class WeakIntHashMap<V> {
      * Returns {@code true} if this map contains a mapping for the specified key.
      */
     public boolean containsKey(int key) {
-        expungeStaleEntries();
         WeakValue<V> ref = map.get(key);
         if (ref != null) {
             if (ref.get() != null) {

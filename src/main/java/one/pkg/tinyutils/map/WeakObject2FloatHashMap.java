@@ -50,6 +50,7 @@ public class WeakObject2FloatHashMap<K> {
         this.map = new Object2FloatOpenCustomHashMap<>(expected, f, STRATEGY);
     }
 
+    // Bolt: Optimization - Restrict cleanup to write operations to prevent queue.poll() contention on reads
     private void expungeStaleEntries() {
         Object ref;
         while ((ref = queue.poll()) != null) {
@@ -61,7 +62,6 @@ public class WeakObject2FloatHashMap<K> {
         if (map.isEmpty()) {
             return 0;
         }
-        expungeStaleEntries();
         return map.size();
     }
 
@@ -71,13 +71,11 @@ public class WeakObject2FloatHashMap<K> {
 
     public float getFloat(K key) {
         Objects.requireNonNull(key, "Key cannot be null");
-        expungeStaleEntries();
         return map.getFloat(key);
     }
 
     public float getOrDefault(K key, float defaultValue) {
         Objects.requireNonNull(key, "Key cannot be null");
-        expungeStaleEntries();
         return map.getOrDefault(key, defaultValue);
     }
 
@@ -96,7 +94,6 @@ public class WeakObject2FloatHashMap<K> {
 
     public boolean containsKey(K key) {
         Objects.requireNonNull(key, "Key cannot be null");
-        expungeStaleEntries();
         return map.containsKey(key);
     }
 
