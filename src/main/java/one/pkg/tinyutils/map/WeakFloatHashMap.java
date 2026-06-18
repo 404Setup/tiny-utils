@@ -31,6 +31,7 @@ public class WeakFloatHashMap<V> {
         this.map = new Float2ObjectOpenHashMap<>(expected, f);
     }
 
+    // Bolt: Optimization - Restrict cleanup to write operations to prevent queue.poll() contention on reads
     private void expungeStaleEntries() {
         WeakValue<V> ref;
         while ((ref = (WeakValue<V>) queue.poll()) != null) {
@@ -45,7 +46,6 @@ public class WeakFloatHashMap<V> {
         if (map.isEmpty()) {
             return 0;
         }
-        expungeStaleEntries();
         return map.size();
     }
 
@@ -55,7 +55,6 @@ public class WeakFloatHashMap<V> {
 
     @Nullable
     public V get(float key) {
-        expungeStaleEntries();
         WeakValue<V> ref = map.get(key);
         if (ref == null) {
             return null;
@@ -93,7 +92,6 @@ public class WeakFloatHashMap<V> {
     }
 
     public boolean containsKey(float key) {
-        expungeStaleEntries();
         WeakValue<V> ref = map.get(key);
         if (ref != null) {
             if (ref.get() != null) {

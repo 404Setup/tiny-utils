@@ -75,3 +75,6 @@
 ## 2024-06-16 - WeakConcurrentHashMap Cleanup Optimization
 **Learning:** `WeakConcurrentHashMap` was calling `ReferenceQueue.poll()` on every read operation (`get`, `containsKey`, `size`, `isEmpty`, etc.) to clean up stale references. While `poll()` is fast, doing it constantly on every thread causes unnecessary lock contention and memory thrashing in high-read environments, reducing performance.
 **Action:** Restrict reference queue cleanup to write operations (`put`, `remove`, `clear`, `replace`) to eliminate contention and overhead on read paths while still ensuring eventual cleanup of stale entries.
+## 2024-05-19 - Restrict cleanup to write operations in Weak map implementations
+**Learning:** Calling `queue.poll()` during read operations (like `get`, `size`, `isEmpty`, `containsKey`) in custom weak/soft reference map implementations introduces thread lock contention and memory thrashing during concurrent reads.
+**Action:** Restrict `queue.poll()` cleanup calls exclusively to write operations (e.g., `put`, `remove`, `clear`). This optimization improves execution time on read-heavy workloads. Remember to add the comment `// Bolt: Optimization - Restrict cleanup to write operations to prevent queue.poll() contention on reads` for consistency.

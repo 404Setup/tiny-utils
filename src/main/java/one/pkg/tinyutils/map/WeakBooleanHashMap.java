@@ -22,6 +22,7 @@ public class WeakBooleanHashMap<V> {
     public WeakBooleanHashMap() {
     }
 
+    // Bolt: Optimization - Restrict cleanup to write operations to prevent queue.poll() contention on reads
     private void expungeStaleEntries() {
         WeakValue<V> ref;
         while ((ref = (WeakValue<V>) queue.poll()) != null) {
@@ -34,7 +35,6 @@ public class WeakBooleanHashMap<V> {
     }
 
     public int size() {
-        expungeStaleEntries();
         int count = 0;
         if (trueRef != null && trueRef.get() != null) count++;
         else trueRef = null;
@@ -49,7 +49,6 @@ public class WeakBooleanHashMap<V> {
 
     @Nullable
     public V get(boolean key) {
-        expungeStaleEntries();
         WeakValue<V> ref = key ? trueRef : falseRef;
         if (ref == null) {
             return null;
@@ -97,7 +96,6 @@ public class WeakBooleanHashMap<V> {
     }
 
     public boolean containsKey(boolean key) {
-        expungeStaleEntries();
         WeakValue<V> ref = key ? trueRef : falseRef;
         if (ref != null) {
             if (ref.get() != null) {

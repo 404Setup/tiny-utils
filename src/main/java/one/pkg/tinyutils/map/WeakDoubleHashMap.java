@@ -31,6 +31,7 @@ public class WeakDoubleHashMap<V> {
         this.map = new Double2ObjectOpenHashMap<>(expected, f);
     }
 
+    // Bolt: Optimization - Restrict cleanup to write operations to prevent queue.poll() contention on reads
     private void expungeStaleEntries() {
         WeakValue<V> ref;
         while ((ref = (WeakValue<V>) queue.poll()) != null) {
@@ -45,7 +46,6 @@ public class WeakDoubleHashMap<V> {
         if (map.isEmpty()) {
             return 0;
         }
-        expungeStaleEntries();
         return map.size();
     }
 
@@ -55,7 +55,6 @@ public class WeakDoubleHashMap<V> {
 
     @Nullable
     public V get(double key) {
-        expungeStaleEntries();
         WeakValue<V> ref = map.get(key);
         if (ref == null) {
             return null;
@@ -93,7 +92,6 @@ public class WeakDoubleHashMap<V> {
     }
 
     public boolean containsKey(double key) {
-        expungeStaleEntries();
         WeakValue<V> ref = map.get(key);
         if (ref != null) {
             if (ref.get() != null) {
