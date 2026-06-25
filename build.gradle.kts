@@ -100,7 +100,17 @@ mavenPublishing {
         }
     }
 
-    publishToMavenCentral()
+    //publishToMavenCentral()
+
+    publishing {
+        repositories {
+            maven {
+                name = "One"
+                url = uri("https://mvnc.pkg.one/snapshots")
+                credentials(PasswordCredentials::class)
+            }
+        }
+    }
 
     signAllPublications()
 }
